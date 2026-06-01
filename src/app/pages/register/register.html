@@ -1,0 +1,121 @@
+<main class="page">
+  <section class="page-container register-layout">
+    <article class="register-copy">
+      <span class="section-eyebrow">Crear perfil</span>
+
+      <h1 class="page-title">
+        Tu identidad dentro de la <span>red</span>
+      </h1>
+
+      <p class="page-subtitle">
+        Completá tus datos para crear un perfil único. Tu foto, descripción y nombre de usuario van a ser parte de cómo otros usuarios te descubren.
+      </p>
+
+      <div class="feature-list">
+        <div>
+          <strong>Perfil visual</strong>
+          <span>Subí una imagen para representar tu cuenta.</span>
+        </div>
+
+        <div>
+          <strong>Usuario único</strong>
+          <span>Tu nombre de usuario será tu identificador dentro de la red.</span>
+        </div>
+
+        <div>
+          <strong>Experiencia segura</strong>
+          <span>Tu contraseña debe cumplir requisitos mínimos de seguridad.</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="register-card glass-card">
+      <h2>Registro</h2>
+      <p>Creá tu cuenta para empezar a publicar, reaccionar y comentar.</p>
+
+      <form>
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="nombre">Nombre</label>
+            <input id="nombre" type="text" placeholder="Valentín">
+          </div>
+
+          <div class="form-field">
+            <label for="apellido">Apellido</label>
+            <input id="apellido" type="text" placeholder="Suetta">
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="correo">Correo</label>
+            <input id="correo" type="email" placeholder="usuario@mail.com">
+          </div>
+
+          <div class="form-field">
+            <label for="nombreUsuario">Nombre de usuario</label>
+            <input id="nombreUsuario" type="text" placeholder="valen.social">
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="password">Contraseña</label>
+            <input id="password" type="password" placeholder="Mínimo 8 caracteres">
+          </div>
+
+          <div class="form-field">
+            <label for="repetirPassword">Repetir contraseña</label>
+            <input id="repetirPassword" type="password" placeholder="Repetí tu contraseña">
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="fechaNacimiento">Fecha de nacimiento</label>
+            <input id="fechaNacimiento" type="date">
+          </div>
+
+          <div class="form-field">
+            <label for="perfil">Perfil</label>
+            <select id="perfil">
+              <option value="usuario">Usuario</option>
+              <option value="administrador">Administrador</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="descripcion">Descripción breve</label>
+          <textarea
+            id="descripcion"
+            placeholder="Contá algo breve sobre vos..."
+          ></textarea>
+        </div>
+
+        <div class="upload-box">
+          <div>
+            <strong>Imagen de perfil</strong>
+            <span>Seleccioná una foto para mostrar en tu perfil.</span>
+          </div>
+
+          <label for="imagenPerfil">
+            Elegir imagen
+            <input id="imagenPerfil" type="file" accept="image/*">
+          </label>
+        </div>
+
+        <div class="auth-actions">
+          <button class="btn btn-primary" type="submit">
+            Crear cuenta
+          </button>
+
+          <p class="auth-link">
+            ¿Ya tenés cuenta?
+            <a routerLink="/login">Iniciar sesión</a>
+          </p>
+        </div>
+      </form>
+    </article>
+  </section>
+</main>

@@ -1,69 +1,265 @@
-<main class="page">
+<main class="page posts-page">
   <section class="page-container posts-layout">
-    <aside class="feed-sidebar glass-card">
-      <span class="section-eyebrow">Feed social</span>
+    <aside class="feed-panel glass-card">
+      <div class="feed-panel-content">
+        <span class="section-eyebrow">Feed social</span>
 
-      <h1>
-        Publicaciones recientes
-      </h1>
+        <h1>
+          Descubrí qué está pasando en la red
+        </h1>
 
-      <p>
-        Descubrí qué está compartiendo la comunidad. Más adelante vas a poder ordenar por fecha o cantidad de me gusta.
-      </p>
+        <p>
+          Un espacio para compartir publicaciones, ideas, momentos e interactuar con otros usuarios.
+        </p>
 
-      <button class="btn btn-primary">
-        Nueva publicación
-      </button>
-    </aside>
+        <button class="btn btn-primary" type="button">
+          Crear publicación
+        </button>
 
-    <section class="feed">
-      <article class="post-card glass-card">
-        <div class="post-header">
-          <img src="https://i.pravatar.cc/100?img=20" alt="Foto de perfil">
+        <div class="feed-stats">
+          <div>
+            <strong>128</strong>
+            <span>Publicaciones</span>
+          </div>
 
           <div>
-            <strong>Lucía Méndez</strong>
-            <span>@lucia.dev · hace 12 min</span>
+            <strong>42</strong>
+            <span>Usuarios activos</span>
+          </div>
+
+          <div>
+            <strong>389</strong>
+            <span>Interacciones</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="feed-main">
+      <div class="feed-header glass-card">
+        <div>
+          <span>Publicaciones</span>
+          <h2>Feed principal</h2>
+        </div>
+
+        <div class="feed-filters">
+          <button class="active" type="button">Recientes</button>
+          <button type="button">Más gustadas</button>
+        </div>
+      </div>
+
+      <article class="composer-card glass-card">
+        <div class="composer-avatar">
+          <img src="https://i.pravatar.cc/120?img=15" alt="Foto de perfil">
+        </div>
+
+        <div class="composer-content">
+          <strong>¿Qué querés compartir hoy?</strong>
+          <span>Más adelante este acceso abrirá el formulario para crear una publicación.</span>
+        </div>
+
+        <button class="composer-action" type="button">
+          Publicar
+        </button>
+      </article>
+
+      <article class="post-card glass-card featured-post">
+        <div class="post-top">
+          <div class="post-user">
+            <img src="https://i.pravatar.cc/120?img=32" alt="Foto de perfil de Sofía">
+
+            <div>
+              <strong>Sofía Ramírez</strong>
+              <span>@sofi.crea · hace 8 min</span>
+            </div>
+          </div>
+
+          <button class="post-menu" type="button" aria-label="Más opciones">
+            ⋯
+          </button>
+        </div>
+
+        <div class="post-body">
+          <div class="post-badge">Tendencia</div>
+
+          <h3>Diseñando una comunidad más humana</h3>
+
+          <p>
+            Las mejores redes no son solamente publicaciones: son conversaciones, perfiles con identidad
+            y espacios donde cada interacción se siente natural.
+          </p>
+
+          <div class="post-media post-media-gradient">
+            <div class="media-orbit orbit-one"></div>
+            <div class="media-orbit orbit-two"></div>
+            <div class="media-orbit orbit-three"></div>
+
+            <div class="media-card">
+              <span>Social Feed</span>
+              <strong>Conexiones reales en tiempo real</strong>
+            </div>
           </div>
         </div>
 
-        <h2>Primer diseño de la red social</h2>
+        <div class="post-footer">
+          <button type="button">
+            <span>♥</span>
+            248 me gusta
+          </button>
 
-        <p>
-          Estamos armando una experiencia distinta, visual y moderna para conectar usuarios dentro de la aplicación.
-        </p>
+          <button type="button">
+            <span>💬</span>
+            37 comentarios
+          </button>
 
-        <div class="post-image"></div>
-
-        <div class="post-actions">
-          <button>Me gusta</button>
-          <button>Comentar</button>
-          <button>Ver detalle</button>
+          <button type="button">
+            <span>↗</span>
+            Ver publicación
+          </button>
         </div>
       </article>
 
       <article class="post-card glass-card">
-        <div class="post-header">
-          <img src="https://i.pravatar.cc/100?img=33" alt="Foto de perfil">
+        <div class="post-top">
+          <div class="post-user">
+            <img src="https://i.pravatar.cc/120?img=12" alt="Foto de perfil de Mateo">
 
-          <div>
-            <strong>Mateo Ruiz</strong>
-            <span>@mateo.social · hace 40 min</span>
+            <div>
+              <strong>Mateo Duarte</strong>
+              <span>@mateo.dev · hace 26 min</span>
+            </div>
+          </div>
+
+          <button class="post-menu" type="button" aria-label="Más opciones">
+            ⋯
+          </button>
+        </div>
+
+        <div class="post-body">
+          <h3>Primer avance del proyecto</h3>
+
+          <p>
+            Ya tenemos navegación, login, registro y una línea visual clara. El próximo paso será conectar
+            esta experiencia con datos reales desde el backend.
+          </p>
+        </div>
+
+        <div class="post-footer">
+          <button type="button">
+            <span>♥</span>
+            96 me gusta
+          </button>
+
+          <button type="button">
+            <span>💬</span>
+            14 comentarios
+          </button>
+
+          <button type="button">
+            <span>↗</span>
+            Ver publicación
+          </button>
+        </div>
+      </article>
+
+      <article class="post-card glass-card">
+        <div class="post-top">
+          <div class="post-user">
+            <img src="https://i.pravatar.cc/120?img=47" alt="Foto de perfil de Lucía">
+
+            <div>
+              <strong>Lucía Fernández</strong>
+              <span>@luchi.social · hace 1 h</span>
+            </div>
+          </div>
+
+          <button class="post-menu" type="button" aria-label="Más opciones">
+            ⋯
+          </button>
+        </div>
+
+        <div class="post-body">
+          <h3>Una interfaz también comunica</h3>
+
+          <p>
+            Si la aplicación es una red social, el diseño tiene que transmitir comunidad, movimiento,
+            contenido e interacción. No alcanza con una pantalla funcional.
+          </p>
+
+          <div class="post-media image-style">
+            <div class="image-style-content">
+              <span>UX</span>
+              <strong>Diseño consistente, claro y memorable</strong>
+            </div>
           </div>
         </div>
 
-        <h2>Una comunidad más visual</h2>
+        <div class="post-footer">
+          <button type="button">
+            <span>♥</span>
+            173 me gusta
+          </button>
 
-        <p>
-          El objetivo es que cada publicación se sienta como una pieza de contenido real, no como una tabla o HTML plano.
-        </p>
+          <button type="button">
+            <span>💬</span>
+            22 comentarios
+          </button>
 
-        <div class="post-actions">
-          <button>Me gusta</button>
-          <button>Comentar</button>
-          <button>Ver detalle</button>
+          <button type="button">
+            <span>↗</span>
+            Ver publicación
+          </button>
         </div>
       </article>
     </section>
+
+    <aside class="right-panel">
+      <section class="trend-card glass-card">
+        <h3>Temas activos</h3>
+
+        <div class="trend-item">
+          <span>#Angular</span>
+          <small>34 publicaciones</small>
+        </div>
+
+        <div class="trend-item">
+          <span>#NestJS</span>
+          <small>21 publicaciones</small>
+        </div>
+
+        <div class="trend-item">
+          <span>#MongoDB</span>
+          <small>18 publicaciones</small>
+        </div>
+      </section>
+
+      <section class="people-card glass-card">
+        <h3>Usuarios destacados</h3>
+
+        <div class="person-item">
+          <img src="https://i.pravatar.cc/80?img=20" alt="Foto de perfil">
+          <div>
+            <strong>Bruno Lima</strong>
+            <span>@bruno.code</span>
+          </div>
+        </div>
+
+        <div class="person-item">
+          <img src="https://i.pravatar.cc/80?img=27" alt="Foto de perfil">
+          <div>
+            <strong>Camila Torres</strong>
+            <span>@cami.ui</span>
+          </div>
+        </div>
+
+        <div class="person-item">
+          <img src="https://i.pravatar.cc/80?img=41" alt="Foto de perfil">
+          <div>
+            <strong>Tomás Silva</strong>
+            <span>@tomi.dev</span>
+          </div>
+        </div>
+      </section>
+    </aside>
   </section>
 </main>

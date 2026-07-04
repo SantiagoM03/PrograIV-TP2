@@ -1,6 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import {FormBuilder, ReactiveFormsModule, Validators,} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AuthService, LoginRequest } from '../../services/auth';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -8,12 +10,13 @@ import {FormBuilder, ReactiveFormsModule, Validators,} from '@angular/forms';
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
-export class Login 
-{
-  private fb = inject(FormBuilder);
-  private router = inject(Router);
+export class Login {
+  private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   loginError = '';
+  isLoading = false;
 
   loginForm = this.fb.group({
     usuarioOCorreo: [
@@ -23,11 +26,19 @@ export class Login
         Validators.minLength(3),
       ],
     ],
+
+    /*
+      En login NO validamos patrón de contraseña.
+
+      Motivo:
+      - No queremos filtrar reglas de seguridad.
+      - Si la contraseña está mal, el backend responde:
+        "Credenciales inválidas."
+    */
     password: [
       '',
       [
         Validators.required,
-        Validators.pattern(/^(?=.*[A-Z])(?=.*\d).{8,}$/),
       ],
     ],
   });
@@ -49,26 +60,37 @@ export class Login
       return;
     }
 
-    const { usuarioOCorreo, password } = this.loginForm.getRawValue();
+    const formValue = this.loginForm.getRawValue();
 
-    if (usuarioOCorreo && password) 
-    {
-      const fakeUser = {
-        nombre: 'Valentín',
-        apellido: 'Suetta',
-        correo: 'valen@mail.com',
-        nombreUsuario: usuarioOCorreo,
-        fechaNacimiento: '2000-01-01',
-        descripcionBreve: 'Usuario de prueba para Sprint 1.',
-        perfil: 'usuario',
-        imagenPerfil: '',
-      };
+    const loginData: LoginRequest = {
+      usuarioOCorreo: formValue.usuarioOCorreo!.trim(),
+      password: formValue.password!,
+    };
 
-      localStorage.setItem('currentUser', JSON.stringify(fakeUser));
-      this.router.navigateByUrl('/publicaciones');
-      return;
-    }
+    this.isLoading = true;
 
-    this.loginError = 'No pudimos iniciar sesión. Revisá los datos ingresados.';
+    this.authService
+      .login(loginData)
+      .pipe(
+        /*
+          finalize se ejecuta siempre:
+          - si el login sale bien;
+          - si el backend devuelve 401;
+          - si ocurre otro error.
+
+          Así evitamos que el botón quede clavado en "Ingresando...".
+        */
+        finalize(() => {
+          this.isLoading = false;
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.router.navigateByUrl('/publicaciones');
+        },
+        error: (error: Error) => {
+          this.loginError = error.message;
+        },
+      });
   }
 }

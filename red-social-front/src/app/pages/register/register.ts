@@ -1,14 +1,21 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import {AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators,} from '@angular/forms';
-import { User, UserProfile } from '../../models/user';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
+
+import { UserProfile } from '../../models/user';
+import { AuthService, RegisterRequest } from '../../services/auth';
 
 const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
 
-function passwordsMatchValidator(): ValidatorFn 
-{
-  return (control: AbstractControl): ValidationErrors | null => 
-  {
+function passwordsMatchValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
     const password = control.get('password')?.value;
     const repetirPassword = control.get('repetirPassword')?.value;
 
@@ -26,16 +33,20 @@ function passwordsMatchValidator(): ValidatorFn
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
-
-export class Register 
-{
-  private fb = inject(FormBuilder);
-  private router = inject(Router);
+export class Register {
+  private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   registerError = '';
   registerSuccess = '';
+  backendError = '';
+
   selectedImageName = '';
   imagePreview = '';
+  selectedImageFile: File | null = null;
+
+  isLoading = false;
 
   registerForm = this.fb.group(
     {
@@ -98,6 +109,12 @@ export class Register
           Validators.maxLength(180),
         ],
       ],
+
+      /*
+        Este campo no manda el archivo.
+        Solo sirve para validar que el usuario haya elegido una imagen.
+        El archivo real se guarda en selectedImageFile.
+      */
       imagenPerfil: [
         '',
         [
@@ -113,7 +130,7 @@ export class Register
     },
     {
       validators: passwordsMatchValidator(),
-    }
+    },
   );
 
   get nombre() {
@@ -163,27 +180,21 @@ export class Register
     );
   }
 
-  onImageSelected(event: Event): void 
-  {
+  onImageSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
 
     this.registerError = '';
+    this.backendError = '';
 
-    if (!file) 
-    {
-      this.selectedImageName = '';
-      this.imagePreview = '';
-      this.imagenPerfil?.setValue('');
+    if (!file) {
+      this.clearSelectedImage();
       this.imagenPerfil?.markAsTouched();
       return;
     }
 
-    if (!file.type.startsWith('image/')) 
-    {
-      this.selectedImageName = '';
-      this.imagePreview = '';
-      this.imagenPerfil?.setValue('');
+    if (!file.type.startsWith('image/')) {
+      this.clearSelectedImage();
       this.imagenPerfil?.markAsTouched();
       this.registerError = 'El archivo seleccionado debe ser una imagen.';
       return;
@@ -192,15 +203,18 @@ export class Register
     const maxSizeInMb = 3;
     const maxSizeInBytes = maxSizeInMb * 1024 * 1024;
 
-    if (file.size > maxSizeInBytes) 
-    {
-      this.selectedImageName = '';
-      this.imagePreview = '';
-      this.imagenPerfil?.setValue('');
+    if (file.size > maxSizeInBytes) {
+      this.clearSelectedImage();
       this.imagenPerfil?.markAsTouched();
       this.registerError = `La imagen no puede superar los ${maxSizeInMb}MB.`;
       return;
     }
+
+    /*
+      Esto es lo importante:
+      acá guardamos el archivo real para mandarlo al backend en FormData.
+    */
+    this.selectedImageFile = file;
 
     this.selectedImageName = file.name;
     this.imagenPerfil?.setValue(file.name);
@@ -208,80 +222,63 @@ export class Register
 
     const reader = new FileReader();
 
-    reader.onload = () => 
-    {
+    reader.onload = () => {
       this.imagePreview = reader.result as string;
     };
 
     reader.readAsDataURL(file);
   }
 
-  register(): void 
-  {
+  onSubmit(): void {
     this.registerError = '';
     this.registerSuccess = '';
+    this.backendError = '';
 
-    if (this.registerForm.invalid) 
-    {
+    if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
       return;
     }
 
+    if (!this.selectedImageFile) {
+      this.backendError = 'La imagen de perfil es obligatoria.';
+      return;
+    }
+
     const formValue = this.registerForm.getRawValue();
-    const users = this.getStoredUsers();
 
-    const emailExists = users.some(
-      (user) => user.correo.toLowerCase() === formValue.correo!.toLowerCase()
-    );
-
-    if (emailExists) 
-    {
-      this.correo?.setErrors({ duplicated: true });
-      this.registerError = 'Ya existe una cuenta registrada con ese correo.';
-      return;
-    }
-
-    const usernameExists = users.some(
-      (user) =>
-        user.nombreUsuario.toLowerCase() ===
-        formValue.nombreUsuario!.toLowerCase()
-    );
-
-    if (usernameExists) 
-    {
-      this.nombreUsuario?.setErrors({ duplicated: true });
-      this.registerError = 'Ese nombre de usuario ya está en uso.';
-      return;
-    }
-
-    const newUser: User = 
-    {
-      id: crypto.randomUUID(),
+    const registerData: RegisterRequest = {
       nombre: formValue.nombre!.trim(),
       apellido: formValue.apellido!.trim(),
       correo: formValue.correo!.trim(),
       nombreUsuario: formValue.nombreUsuario!.trim(),
+      password: formValue.password!,
+      repetirPassword: formValue.repetirPassword!,
       fechaNacimiento: formValue.fechaNacimiento!,
       descripcionBreve: formValue.descripcionBreve!.trim(),
-      imagenPerfil: this.imagePreview,
       perfil: formValue.perfil as UserProfile,
+      imagenPerfil: this.selectedImageFile,
     };
 
-    users.push(newUser);
+    this.isLoading = true;
 
-    localStorage.setItem('users', JSON.stringify(users));
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
+    this.authService.register(registerData).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.registerSuccess = 'Cuenta creada correctamente. Redirigiendo al feed...';
 
-    this.registerSuccess = 'Cuenta creada correctamente. Redirigiendo al feed...';
-
-    setTimeout(() => {
-      this.router.navigateByUrl('/publicaciones');
-    }, 900);
+        this.router.navigateByUrl('/publicaciones');
+      },
+      error: (error: Error) => {
+        this.isLoading = false;
+        this.backendError = error.message;
+      },
+    });
   }
 
-  private getStoredUsers(): User[] 
-  {
-    const users = localStorage.getItem('users');
-    return users ? JSON.parse(users) as User[] : [];
+  private clearSelectedImage(): void {
+    this.selectedImageName = '';
+    this.imagePreview = '';
+    this.selectedImageFile = null;
+    this.imagenPerfil?.setValue('');
   }
 }

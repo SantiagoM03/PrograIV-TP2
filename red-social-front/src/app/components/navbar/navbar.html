@@ -15,16 +15,30 @@
       <span>Publicaciones</span>
     </a>
 
-    <a routerLink="/mi-perfil" routerLinkActive="active">
-      <span>Mi perfil</span>
-    </a>
+    @if (isLoggedIn()) {
+      <a routerLink="/mi-perfil" routerLinkActive="active">
+        <span>Mi perfil</span>
+      </a>
 
-    <a routerLink="/login" routerLinkActive="active">
-      <span>Login</span>
-    </a>
+      <span class="nav-user">
+        {{ currentUser()?.nombreUsuario }}
+      </span>
 
-    <a routerLink="/registro" routerLinkActive="active">
-      <span>Registro</span>
-    </a>
+      <button
+        type="button"
+        class="nav-logout"
+        (click)="logout()"
+      >
+        Cerrar sesión
+      </button>
+    } @else {
+      <a routerLink="/login" routerLinkActive="active">
+        <span>Login</span>
+      </a>
+
+      <a routerLink="/registro" routerLinkActive="active">
+        <span>Registro</span>
+      </a>
+    }
   </nav>
 </header>

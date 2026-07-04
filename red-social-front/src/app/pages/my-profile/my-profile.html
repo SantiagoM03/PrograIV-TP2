@@ -1,216 +1,165 @@
-<main class="page profile-page">
-  <section class="page-container profile-layout">
-    <article class="profile-hero glass-card">
-      <div class="profile-cover">
-        <div class="cover-orb orb-one"></div>
-        <div class="cover-orb orb-two"></div>
-        <div class="cover-orb orb-three"></div>
+@if (currentUser(); as user) {
+  <main class="page profile-page">
+    <section class="page-container profile-layout">
+      <article class="profile-hero glass-card">
+        <div class="profile-cover">
+          <div class="cover-orb orb-one"></div>
+          <div class="cover-orb orb-two"></div>
+          <div class="cover-orb orb-three"></div>
 
-        <div class="cover-content">
-          <span>Perfil activo</span>
-          <strong>Tu espacio dentro de la comunidad</strong>
-        </div>
-      </div>
-
-      <div class="profile-main">
-        <div class="avatar-wrapper">
-          <img
-            class="profile-avatar"
-            src="https://i.pravatar.cc/220?img=15"
-            alt="Foto de perfil"
-          >
-
-          <span class="status-dot"></span>
+          <div class="cover-content">
+            <span>Perfil activo</span>
+            <strong>Tu espacio dentro de la comunidad</strong>
+          </div>
         </div>
 
-        <div class="profile-info">
-          <div class="profile-heading">
-            <div>
-              <span class="section-eyebrow">Mi perfil</span>
+        <div class="profile-main">
+          <div class="avatar-wrapper">
+            <img
+              class="profile-avatar"
+              [src]="user.imagenPerfilUrl"
+              [alt]="'Foto de perfil de ' + user.nombreUsuario"
+            >
 
-              <h1>Valentín Suetta</h1>
+            <span class="status-dot"></span>
+          </div>
 
-              <p class="username">@valen.social</p>
+          <div class="profile-info">
+            <div class="profile-heading">
+              <div>
+                <span class="section-eyebrow">Mi perfil</span>
+
+                <h1>{{ getFullName(user.nombre, user.apellido) }}</h1>
+
+                <p class="username">@{{ user.nombreUsuario }}</p>
+              </div>
+
+              <button class="btn btn-primary" type="button" disabled>
+                Perfil conectado
+              </button>
             </div>
 
-            <button class="btn btn-primary" type="button">
-              Editar perfil
+            <p class="bio">
+              {{ user.descripcionBreve }}
+            </p>
+
+            <div class="profile-meta">
+              <div>
+                <span>Correo</span>
+                <strong>{{ user.correo }}</strong>
+              </div>
+
+              <div>
+                <span>Fecha de nacimiento</span>
+                <strong>{{ formatDate(user.fechaNacimiento) }}</strong>
+              </div>
+
+              <div>
+                <span>Perfil</span>
+                <strong>{{ formatPerfil(user.perfil) }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <section class="profile-grid">
+        <aside class="profile-summary glass-card">
+          <h2>Resumen social</h2>
+
+          <div class="summary-list">
+            <div class="summary-item">
+              <div class="summary-icon">✦</div>
+
+              <div>
+                <strong>0</strong>
+                <span>Publicaciones creadas</span>
+              </div>
+            </div>
+
+            <div class="summary-item">
+              <div class="summary-icon">♥</div>
+
+              <div>
+                <strong>0</strong>
+                <span>Me gusta recibidos</span>
+              </div>
+            </div>
+
+            <div class="summary-item">
+              <div class="summary-icon">💬</div>
+
+              <div>
+                <strong>0</strong>
+                <span>Comentarios recibidos</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-note">
+            <strong>Datos reales del usuario</strong>
+            <p>
+              Esta pantalla ya muestra la información real del usuario logueado.
+              Las publicaciones, likes y comentarios se conectarán en el Sprint 2.
+            </p>
+          </div>
+        </aside>
+
+        <section class="profile-activity">
+          <div class="section-header">
+            <div>
+              <span>Actividad reciente</span>
+              <h2>Últimas publicaciones</h2>
+            </div>
+
+            <button class="btn btn-secondary" type="button" disabled>
+              Ver todas
             </button>
           </div>
 
-          <p class="bio">
-            Desarrollador en formación, compartiendo avances, ideas y experiencias dentro
-            de una red social moderna pensada para conectar usuarios.
-          </p>
+          <article class="profile-post glass-card featured">
+            <div class="post-header">
+              <div>
+                <span class="post-date">Sprint 2</span>
+                <h3>Publicaciones reales pendientes de conexión</h3>
+              </div>
 
-          <div class="profile-meta">
-            <div>
-              <span>Correo</span>
-              <strong>valen@mail.com</strong>
+              <button class="post-options" type="button" aria-label="Más opciones" disabled>
+                ⋯
+              </button>
             </div>
 
-            <div>
-              <span>Fecha de nacimiento</span>
-              <strong>01/01/2000</strong>
+            <p>
+              En el siguiente sprint vamos a conectar esta sección con MongoDB para mostrar
+              las últimas 3 publicaciones reales del usuario logueado.
+            </p>
+
+            <div class="post-visual">
+              <div>
+                <span>Perfil conectado</span>
+                <strong>{{ user.nombreUsuario }}</strong>
+              </div>
             </div>
 
-            <div>
-              <span>Perfil</span>
-              <strong>Usuario</strong>
+            <div class="post-stats">
+              <span>♥ 0 me gusta</span>
+              <span>💬 0 comentarios</span>
             </div>
-          </div>
-        </div>
-      </div>
-    </article>
-
-    <section class="profile-grid">
-      <aside class="profile-summary glass-card">
-        <h2>Resumen social</h2>
-
-        <div class="summary-list">
-          <div class="summary-item">
-            <div class="summary-icon">✦</div>
-
-            <div>
-              <strong>12</strong>
-              <span>Publicaciones creadas</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-icon">♥</div>
-
-            <div>
-              <strong>284</strong>
-              <span>Me gusta recibidos</span>
-            </div>
-          </div>
-
-          <div class="summary-item">
-            <div class="summary-icon">💬</div>
-
-            <div>
-              <strong>63</strong>
-              <span>Comentarios recibidos</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="profile-note">
-          <strong>Próxima integración</strong>
-          <p>
-            Estos datos se conectarán al backend cuando tengamos usuarios,
-            publicaciones, comentarios y likes reales.
-          </p>
-        </div>
-      </aside>
-
-      <section class="profile-activity">
-        <div class="section-header">
-          <div>
-            <span>Actividad reciente</span>
-            <h2>Últimas publicaciones</h2>
-          </div>
-
-          <button class="btn btn-secondary" type="button">
-            Ver todas
-          </button>
-        </div>
-
-        <article class="profile-post glass-card featured">
-          <div class="post-header">
-            <div>
-              <span class="post-date">Hace 12 minutos</span>
-              <h3>Diseñando mi primera red social</h3>
-            </div>
-
-            <button class="post-options" type="button" aria-label="Más opciones">
-              ⋯
-            </button>
-          </div>
-
-          <p>
-            Primer avance visual del proyecto: navegación, formularios, feed y perfil
-            con una identidad gráfica clara para toda la aplicación.
-          </p>
-
-          <div class="post-visual">
-            <div>
-              <span>UX Sprint 1</span>
-              <strong>Interfaz consistente y moderna</strong>
-            </div>
-          </div>
-
-          <div class="post-stats">
-            <span>♥ 48 me gusta</span>
-            <span>💬 9 comentarios</span>
-          </div>
-        </article>
-
-        <article class="profile-post glass-card">
-          <div class="post-header">
-            <div>
-              <span class="post-date">Hace 1 hora</span>
-              <h3>Perfil de usuario preparado para datos reales</h3>
-            </div>
-
-            <button class="post-options" type="button" aria-label="Más opciones">
-              ⋯
-            </button>
-          </div>
-
-          <p>
-            Esta pantalla después va a mostrar los datos reales del usuario logueado,
-            su foto de perfil, descripción breve y sus últimas publicaciones.
-          </p>
-
-          <div class="comments-preview">
-            <strong>Comentarios recientes</strong>
-
-            <div class="comment-item">
-              <img src="https://i.pravatar.cc/80?img=20" alt="Foto de usuario">
-              <p>
-                <b>Bruno:</b> Muy buena estructura para conectar con el backend.
-              </p>
-            </div>
-
-            <div class="comment-item">
-              <img src="https://i.pravatar.cc/80?img=27" alt="Foto de usuario">
-              <p>
-                <b>Camila:</b> El diseño se siente mucho más cercano a una red social real.
-              </p>
-            </div>
-          </div>
-
-          <div class="post-stats">
-            <span>♥ 31 me gusta</span>
-            <span>💬 6 comentarios</span>
-          </div>
-        </article>
-
-        <article class="profile-post glass-card">
-          <div class="post-header">
-            <div>
-              <span class="post-date">Ayer</span>
-              <h3>Experiencia visual antes de conectar lógica</h3>
-            </div>
-
-            <button class="post-options" type="button" aria-label="Más opciones">
-              ⋯
-            </button>
-          </div>
-
-          <p>
-            Aunque todavía no esté conectado el backend, dejar bien armadas las pantallas
-            ayuda a tener una app más profesional y fácil de integrar.
-          </p>
-
-          <div class="post-stats">
-            <span>♥ 22 me gusta</span>
-            <span>💬 4 comentarios</span>
-          </div>
-        </article>
+          </article>
+        </section>
       </section>
     </section>
-  </section>
-</main>
+  </main>
+} @else {
+  <main class="page profile-page">
+    <section class="page-container">
+      <article class="glass-card">
+        <span class="section-eyebrow">Sesión requerida</span>
+        <h1 class="page-title">No hay usuario logueado</h1>
+        <p class="page-subtitle">
+          Para ver tu perfil, primero tenés que iniciar sesión.
+        </p>
+      </article>
+    </section>
+  </main>
+}

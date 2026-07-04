@@ -1,6 +1,6 @@
 export type UserProfile = 'usuario' | 'administrador';
-export interface User 
-{
+
+export interface User {
   id: string;
   nombre: string;
   apellido: string;
@@ -8,6 +8,14 @@ export interface User
   nombreUsuario: string;
   fechaNacimiento: string;
   descripcionBreve: string;
-  imagenPerfil: string;
+
+  /*
+    El backend devuelve imagenPerfilUrl.
+    Esta URL apunta a:
+    http://localhost:3000/uploads/users/...
+  */
+  imagenPerfilUrl: string;
+
   perfil: UserProfile;
+  habilitado: boolean;
 }

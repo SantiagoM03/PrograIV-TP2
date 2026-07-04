@@ -97,6 +97,33 @@
   box-shadow: 0 10px 28px rgba(124, 58, 237, 0.35);
 }
 
+.nav-user {
+  padding: 11px 16px;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 900;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.nav-logout {
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  background: rgba(239, 68, 68, 0.82);
+  transition: 0.2s ease;
+}
+
+.nav-logout:hover {
+  background: rgba(239, 68, 68, 1);
+  transform: translateY(-1px);
+}
+
 @media (max-width: 760px) {
   .navbar {
     height: auto;
@@ -113,6 +140,11 @@
   }
 
   .nav-links a {
+    padding: 10px 13px;
+  }
+
+  .nav-user,
+  .nav-logout {
     padding: 10px 13px;
   }
 }

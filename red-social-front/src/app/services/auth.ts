@@ -137,6 +137,69 @@ export class AuthService {
       );
   }
 
+    /*
+    Sprint 3:
+    Valida la sesión contra el backend.
+
+    POST /api/auth/autorizar
+
+    Si la cookie access_token es válida:
+    - el backend devuelve el usuario;
+    - actualizamos currentUser;
+    - dejamos pasar a publicaciones.
+
+    Si no es válida:
+    - limpiamos usuario local;
+    - el componente loading redirige al login.
+  */
+  authorize(): Observable<User> {
+    return this.http
+      .post<AuthBackendResponse>(
+        `${this.apiUrl}/auth/autorizar`,
+        {},
+        {
+          withCredentials: true,
+        },
+      )
+      .pipe(
+        map((response) => response.user),
+        tap((user) => this.setCurrentUser(user)),
+        catchError((error) => {
+          this.clearCurrentUser();
+          return this.handleAuthError(error);
+        }),
+      );
+  }
+
+  /*
+    Sprint 3:
+    Refresca la sesión.
+
+    POST /api/auth/refrescar
+
+    El backend valida el token actual.
+    Si está vigente, genera otro token de 15 minutos
+    y lo vuelve a guardar en cookie httpOnly.
+  */
+  refreshSession(): Observable<User> {
+    return this.http
+      .post<AuthBackendResponse>(
+        `${this.apiUrl}/auth/refrescar`,
+        {},
+        {
+          withCredentials: true,
+        },
+      )
+      .pipe(
+        map((response) => response.user),
+        tap((user) => this.setCurrentUser(user)),
+        catchError((error) => {
+          this.clearCurrentUser();
+          return this.handleAuthError(error);
+        }),
+      );
+  }
+
   /*
     Guarda el usuario en memoria y localStorage.
   */

@@ -1,0 +1,82 @@
+<article class="post-card glass-card">
+  <header class="post-header">
+    <div class="author">
+      <img
+        [src]="post.authorImagenPerfilUrl"
+        [alt]="'Foto de ' + post.authorNombreUsuario"
+      >
+
+      <div>
+        <strong>{{ authorFullName }}</strong>
+        <span>@{{ post.authorNombreUsuario }} · {{ formatDate(post.createdAt) }}</span>
+      </div>
+    </div>
+
+    @if (canDelete) {
+      <button
+        type="button"
+        class="delete-button"
+        [disabled]="isProcessing"
+        (click)="onDelete()"
+      >
+        Eliminar
+      </button>
+    }
+  </header>
+
+  <section class="post-content">
+    <h3>{{ post.title }}</h3>
+
+    <p>{{ post.description }}</p>
+
+    @if (post.imageUrl) {
+      <img
+        class="post-image"
+        [src]="post.imageUrl"
+        [alt]="post.title"
+      >
+    }
+  </section>
+
+  <footer class="post-actions">
+    <button
+      type="button"
+      class="like-button"
+      [class.liked]="userLiked"
+      [disabled]="isProcessing || !currentUser"
+      (click)="onToggleLike()"
+    >
+      {{ userLiked ? '♥ Quitar me gusta' : '♡ Me gusta' }}
+    </button>
+
+    <span>{{ post.likesCount }} me gusta</span>
+    <span>{{ post.commentsCount }} comentarios</span>
+
+    <a
+      class="detail-link"
+      [routerLink]="['/publicaciones', post.id]"
+    >
+      Ver publicación
+    </a>
+  </footer>
+
+  @if (post.comments.length > 0) {
+    <section class="comments-preview">
+      <strong>Comentarios</strong>
+
+      @for (comment of post.comments; track comment.id) {
+        <div class="comment-item">
+          <img
+            [src]="comment.userImagenPerfilUrl"
+            [alt]="'Foto de ' + comment.userNombreUsuario"
+          >
+
+          <p>
+            <b>@{{ comment.userNombreUsuario }}:</b>
+            {{ comment.text }}
+          </p>
+        </div>
+      }
+    </section>
+  }
+</article>

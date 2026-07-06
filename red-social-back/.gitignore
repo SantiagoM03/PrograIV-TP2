@@ -60,3 +60,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 !/uploads/.gitkeep
 !/uploads/users/
 !/uploads/users/.gitkeep
+!/uploads/posts/
+!/uploads/posts/.gitkeep

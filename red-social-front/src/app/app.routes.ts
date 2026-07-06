@@ -5,8 +5,9 @@ import { publicGuard } from './guards/public.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'login',
     pathMatch: 'full',
+    loadComponent: () =>
+      import('./pages/loading/loading').then((m) => m.Loading),
   },
   {
     path: 'login',
@@ -19,8 +20,14 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/register/register').then((m) => m.Register),
   },
   {
+    path: 'publicaciones/:id',
+    loadComponent: () =>
+      import('./pages/post-detail/post-detail').then((m) => m.PostDetail),
+  },
+  {
     path: 'publicaciones',
-    loadComponent: () => import('./pages/posts/posts').then((m) => m.Posts),
+    loadComponent: () =>
+      import('./pages/posts/posts').then((m) => m.Posts),
   },
   {
     path: 'mi-perfil',

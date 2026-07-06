@@ -1,4 +1,549 @@
-import { Injectable } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable prettier/prettier */
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { mkdir, unlink, writeFile } from 'fs/promises';
+import { randomUUID } from 'crypto';
+import { extname, join } from 'path';
+import { Model, Types } from 'mongoose';
+
+import { AuthenticatedUser } from '../auth/interfaces/authenticated-user.interface';
+import { UserProfile } from '../users/schemas/user.schema';
+import { UsersService } from '../users/users.service';
+import { CreatePostDto } from './dto/create-post.dto';
+import { ListPostsQueryDto } from './dto/list-posts-query.dto';
+import { Post, PostComment, PostDocument } from './schemas/post.schema';
+import { CreateCommentDto } from '../auth/dto/create-comment.dto';
+import { ListCommentsQueryDto } from '../auth/dto/list-comments-query.dto';
+import { UpdateCommentDto } from '../auth/dto/update-comment.dto';
+
+
+export interface UploadedPostImage {
+  originalname: string;
+  mimetype: string;
+  buffer: Buffer;
+  size: number;
+}
+
+export interface PostResponse {
+  id: string;
+  authorId: string;
+  authorNombre: string;
+  authorApellido: string;
+  authorNombreUsuario: string;
+  authorImagenPerfilUrl: string;
+  title: string;
+  description: string;
+  imageUrl: string | null;
+  likes: string[];
+  likesCount: number;
+  commentsCount: number;
+  comments: {
+    id: string;
+    userId: string;
+    userNombreUsuario: string;
+    userImagenPerfilUrl: string;
+    text: string;
+    edited: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  }[];
+  isDeleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CommentResponse 
+{
+  id: string;
+  userId: string;
+  userNombreUsuario: string;
+  userImagenPerfilUrl: string;
+  text: string;
+  edited: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+type StoredPostComment = PostComment & {
+  _id?: Types.ObjectId;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
 
 @Injectable()
-export class PostsService {}
+export class PostsService 
+{
+  constructor(
+    @InjectModel(Post.name)
+    private readonly postModel: Model<PostDocument>,
+    private readonly usersService: UsersService,
+  ) {}
+
+    /*
+    Obtiene una publicación específica.
+
+    Sprint 3:
+    Se usa para mostrar la página grande de una publicación
+    junto con sus comentarios.
+  */
+  async getPostById(postId: string): Promise<PostResponse> {
+    const post = await this.findActivePostOrFail(postId);
+
+    return this.toPostResponse(post);
+  }
+
+  /*
+    Alta de publicación.
+
+    La publicación queda relacionada al usuario autenticado.
+    La imagen es opcional.
+  */
+  async createPost(
+    createPostDto: CreatePostDto,
+    imageFile: UploadedPostImage | undefined,
+    baseUrl: string,
+    currentUser: AuthenticatedUser,
+  ): Promise<PostResponse> {
+    const author = await this.usersService.findById(currentUser.id);
+
+    if (!author) {
+      throw new NotFoundException('Usuario no encontrado.');
+    }
+
+    let savedImage: { filePath: string; publicUrl: string } | null = null;
+
+    if (imageFile) {
+      savedImage = await this.savePostImage(imageFile, baseUrl);
+    }
+
+    try {
+      const post = new this.postModel({
+        authorId: author._id,
+        authorNombre: author.nombre,
+        authorApellido: author.apellido,
+        authorNombreUsuario: author.nombreUsuario,
+        authorImagenPerfilUrl: author.imagenPerfilUrl,
+        title: createPostDto.title.trim(),
+        description: createPostDto.description.trim(),
+        imageUrl: savedImage?.publicUrl ?? null,
+        likes: [],
+        likesCount: 0,
+        comments: [],
+        commentsCount: 0,
+        isDeleted: false,
+      });
+
+      const createdPost = await post.save();
+
+      return this.toPostResponse(createdPost);
+    } catch (error) {
+      /*
+        Si MongoDB falla después de guardar la imagen,
+        borramos la imagen para no dejar archivos huérfanos.
+      */
+      if (savedImage) {
+        await this.deleteFileIfExists(savedImage.filePath);
+      }
+
+      throw error;
+    }
+  }
+
+  /*
+    Listado de publicaciones.
+
+    Permite:
+    - orderBy=fecha
+    - orderBy=likes
+    - userId=...
+    - offset=...
+    - limit=...
+  */
+  async listPosts(query: ListPostsQueryDto): Promise<{
+    items: PostResponse[];
+    total: number;
+    offset: number;
+    limit: number;
+    orderBy: 'fecha' | 'likes';
+  }> {
+    const orderBy = query.orderBy ?? 'fecha';
+    const offset = query.offset ?? 0;
+
+    /*
+      Limit máximo 20 para evitar traer demasiados documentos juntos.
+    */
+    const limit = Math.min(query.limit ?? 5, 20);
+
+    const filter: {
+      isDeleted: boolean;
+      authorId?: Types.ObjectId;
+    } = {
+      isDeleted: false,
+    };
+
+    if (query.userId) {
+      if (!Types.ObjectId.isValid(query.userId)) {
+        throw new BadRequestException('El userId no es válido.');
+      }
+
+      filter.authorId = new Types.ObjectId(query.userId);
+    }
+
+    const sort: Record<string, 1 | -1> =
+        orderBy === 'likes'
+            ? { likesCount: -1, createdAt: -1 }
+            : { createdAt: -1 };
+
+    const [posts, total] = await Promise.all([
+      this.postModel
+        .find(filter)
+        .sort(sort)
+        .skip(offset)
+        .limit(limit)
+        .exec(),
+      this.postModel.countDocuments(filter).exec(),
+    ]);
+
+    return {
+      items: posts.map((post) => this.toPostResponse(post)),
+      total,
+      offset,
+      limit,
+      orderBy,
+    };
+  }
+
+  /*
+    Baja lógica de una publicación.
+
+    Solo puede hacerla:
+    - el usuario que creó la publicación;
+    - o un administrador.
+  */
+  async softDeletePost(
+    postId: string,
+    currentUser: AuthenticatedUser,
+  ): Promise<PostResponse> {
+    const post = await this.findActivePostOrFail(postId);
+
+    const isOwner = String(post.authorId) === currentUser.id;
+    const isAdmin = currentUser.perfil === UserProfile.Administrador;
+
+    if (!isOwner && !isAdmin) {
+      throw new ForbiddenException(
+        'Solo podés eliminar tus propias publicaciones.',
+      );
+    }
+
+    post.isDeleted = true;
+
+    const updatedPost = await post.save();
+
+    return this.toPostResponse(updatedPost);
+  }
+
+  /*
+    Dar me gusta.
+
+    Un usuario puede dar un solo like por publicación.
+  */
+  async likePost(
+    postId: string,
+    currentUser: AuthenticatedUser,
+  ): Promise<PostResponse> {
+    const post = await this.findActivePostOrFail(postId);
+
+    const alreadyLiked = post.likes.some(
+      (userId) => String(userId) === currentUser.id,
+    );
+
+    if (alreadyLiked) {
+      throw new BadRequestException(
+        'Ya le diste me gusta a esta publicación.',
+      );
+    }
+
+    post.likes.push(new Types.ObjectId(currentUser.id));
+    post.likesCount = post.likes.length;
+
+    const updatedPost = await post.save();
+
+    return this.toPostResponse(updatedPost);
+  }
+
+  /*
+    Quitar me gusta.
+
+    Solo se puede quitar si previamente el usuario había dado like.
+  */
+  async unlikePost(
+    postId: string,
+    currentUser: AuthenticatedUser,
+  ): Promise<PostResponse> {
+    const post = await this.findActivePostOrFail(postId);
+
+    const alreadyLiked = post.likes.some(
+      (userId) => String(userId) === currentUser.id,
+    );
+
+    if (!alreadyLiked) {
+      throw new BadRequestException(
+        'No podés quitar un me gusta que no habías realizado.',
+      );
+    }
+
+    post.likes = post.likes.filter(
+      (userId) => String(userId) !== currentUser.id,
+    );
+
+    post.likesCount = post.likes.length;
+
+    const updatedPost = await post.save();
+
+    return this.toPostResponse(updatedPost);
+  }
+
+  /*
+  Agrega un comentario a una publicación.
+
+  Sprint 3:
+  Por POST agrega un comentario junto con:
+  - usuario que lo realizó;
+  - fecha;
+  - publicación relacionada.
+*/
+  async addComment(
+    postId: string,
+    createCommentDto: CreateCommentDto,
+    currentUser: AuthenticatedUser,
+  ): Promise<CommentResponse> {
+    const post = await this.findActivePostOrFail(postId);
+
+    const user = await this.usersService.findById(currentUser.id);
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado.');
+    }
+
+    post.comments.push({
+      userId: new Types.ObjectId(currentUser.id),
+      userNombreUsuario: user.nombreUsuario,
+      userImagenPerfilUrl: user.imagenPerfilUrl,
+      text: createCommentDto.text.trim(),
+      edited: false,
+    } as unknown as PostComment);
+
+    post.commentsCount = post.comments.length;
+
+    const updatedPost = await post.save();
+
+    const comments = updatedPost.comments as unknown as StoredPostComment[];
+    const createdComment = comments[comments.length - 1];
+
+    return this.toCommentResponse(createdComment);
+  }
+
+  /*
+    Lista comentarios de una publicación.
+
+    Sprint 3:
+    - Debe paginar.
+    - Debe ordenar los más recientes primero.
+  */
+  async listComments(
+    postId: string,
+    query: ListCommentsQueryDto,
+  ): Promise<{
+    items: CommentResponse[];
+    total: number;
+    offset: number;
+    limit: number;
+  }> {
+    const post = await this.findActivePostOrFail(postId);
+
+    const offset = query.offset ?? 0;
+    const limit = Math.min(query.limit ?? 5, 20);
+
+    const comments = [...(post.comments as unknown as StoredPostComment[])];
+
+    comments.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+
+      return dateB - dateA;
+    });
+
+    const paginatedComments = comments.slice(offset, offset + limit);
+
+    return {
+      items: paginatedComments.map((comment) =>
+        this.toCommentResponse(comment),
+      ),
+      total: comments.length,
+      offset,
+      limit,
+    };
+  }
+
+  /*
+    Modifica un comentario.
+
+    Sprint 3:
+    El usuario que escribió el comentario puede editarlo.
+    Un comentario editado debe anunciar que fue editado.
+  */
+  async updateComment(
+    postId: string,
+    commentId: string,
+    updateCommentDto: UpdateCommentDto,
+    currentUser: AuthenticatedUser,
+  ): Promise<CommentResponse> {
+    const post = await this.findActivePostOrFail(postId);
+
+    if (!Types.ObjectId.isValid(commentId)) {
+      throw new BadRequestException('El id del comentario no es válido.');
+    }
+
+    const comments = post.comments as unknown as StoredPostComment[];
+
+    const comment = comments.find(
+      (item) => String(item._id) === commentId,
+    );
+
+    if (!comment) {
+      throw new NotFoundException('Comentario no encontrado.');
+    }
+
+    const isCommentOwner = String(comment.userId) === currentUser.id;
+
+    if (!isCommentOwner) {
+      throw new ForbiddenException(
+        'Solo podés editar tus propios comentarios.',
+      );
+    }
+
+    comment.text = updateCommentDto.text.trim();
+    comment.edited = true;
+    comment.updatedAt = new Date();
+
+    post.markModified('comments');
+
+    await post.save();
+
+    return this.toCommentResponse(comment);
+  }
+
+  private async findActivePostOrFail(postId: string): Promise<PostDocument> {
+    if (!Types.ObjectId.isValid(postId)) {
+      throw new BadRequestException('El id de la publicación no es válido.');
+    }
+
+    const post = await this.postModel
+      .findOne({
+        _id: postId,
+        isDeleted: false,
+      })
+      .exec();
+
+    if (!post) {
+      throw new NotFoundException('Publicación no encontrada.');
+    }
+
+    return post;
+  }
+
+  private async savePostImage(
+    imageFile: UploadedPostImage,
+    baseUrl: string,
+  ): Promise<{ filePath: string; publicUrl: string }> {
+    const uploadFolder = join(process.cwd(), 'uploads', 'posts');
+
+    await mkdir(uploadFolder, { recursive: true });
+
+    const fileExtension = extname(imageFile.originalname);
+    const fileName = `${randomUUID()}${fileExtension}`;
+
+    const filePath = join(uploadFolder, fileName);
+
+    await writeFile(filePath, imageFile.buffer);
+
+    const publicUrl = `${baseUrl}/uploads/posts/${fileName}`;
+
+    return {
+      filePath,
+      publicUrl,
+    };
+  }
+
+  private async deleteFileIfExists(filePath: string): Promise<void> {
+    try {
+      await unlink(filePath);
+    } catch {
+      /*
+        Si el archivo no existe, no cortamos la ejecución.
+      */
+    }
+  }
+
+  private toCommentResponse(comment: StoredPostComment): CommentResponse 
+  {
+    const fallbackDate = new Date();
+
+    return {
+      id: String(comment._id),
+      userId: String(comment.userId),
+      userNombreUsuario: comment.userNombreUsuario,
+      userImagenPerfilUrl: comment.userImagenPerfilUrl,
+      text: comment.text,
+      edited: comment.edited,
+      createdAt: comment.createdAt ?? fallbackDate,
+      updatedAt: comment.updatedAt ?? comment.createdAt ?? fallbackDate,
+    };
+  }
+
+  private toPostResponse(post: PostDocument): PostResponse {
+    const comments = (post.comments ?? []) as Array<
+      PostComment & {
+        _id?: Types.ObjectId;
+      }
+    >;
+
+    return {
+      id: String(post._id),
+      authorId: String(post.authorId),
+      authorNombre: post.authorNombre,
+      authorApellido: post.authorApellido,
+      authorNombreUsuario: post.authorNombreUsuario,
+      authorImagenPerfilUrl: post.authorImagenPerfilUrl,
+      title: post.title,
+      description: post.description,
+      imageUrl: post.imageUrl,
+      likes: post.likes.map((userId) => String(userId)),
+      likesCount: post.likesCount,
+      commentsCount: post.commentsCount,
+      comments: comments.map((comment) => ({
+        id: String(comment._id),
+        userId: String(comment.userId),
+        userNombreUsuario: comment.userNombreUsuario,
+        userImagenPerfilUrl: comment.userImagenPerfilUrl,
+        text: comment.text,
+        edited: comment.edited,
+        createdAt: comment.createdAt,
+        updatedAt: comment.updatedAt,
+      })),
+      isDeleted: post.isDeleted,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+    };
+  }
+}

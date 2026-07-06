@@ -13,6 +13,7 @@ import {UserResponse,UsersService} from '../users/users.service';
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import { extname, join } from 'path';
+import { AuthenticatedUser } from './interfaces/authenticated-user.interface';
 
 /*
   Payload del JWT.
@@ -251,6 +252,53 @@ export class AuthService {
     /*
       Generamos un JWT nuevo.
     */
+    const accessToken = await this.generateAccessToken(userResponse);
+
+    return {
+      user: userResponse,
+      accessToken,
+    };
+  }
+
+    /*
+    Autorizar sesión.
+
+    Se usa en Sprint 3 para validar si la cookie access_token
+    sigue siendo válida al iniciar la aplicación.
+  */
+  async authorizeSession(currentUser: AuthenticatedUser): Promise<UserResponse> {
+    const user = await this.usersService.findById(currentUser.id);
+
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado.');
+    }
+
+    if (!user.habilitado) {
+      throw new ForbiddenException('Tu usuario se encuentra deshabilitado.');
+    }
+
+    return this.usersService.toUserResponse(user);
+  }
+
+  /*
+    Refrescar sesión.
+
+    Valida que el token actual siga siendo válido mediante JwtCookieGuard.
+    Si es válido, genera un token nuevo con otros 15 minutos de vencimiento.
+  */
+  async refreshSession(currentUser: AuthenticatedUser): Promise<AuthResponse> {
+    const user = await this.usersService.findById(currentUser.id);
+
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado.');
+    }
+
+    if (!user.habilitado) {
+      throw new ForbiddenException('Tu usuario se encuentra deshabilitado.');
+    }
+
+    const userResponse = this.usersService.toUserResponse(user);
+
     const accessToken = await this.generateAccessToken(userResponse);
 
     return {

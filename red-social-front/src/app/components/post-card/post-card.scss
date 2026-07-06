@@ -1,0 +1,146 @@
+.post-card {
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.author img {
+  width: 48px;
+  height: 48px;
+  border-radius: 18px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.author strong {
+  display: block;
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.author span {
+  display: block;
+  margin-top: 3px;
+  color: #96a2bd;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.delete-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+  background: rgba(239, 68, 68, 0.82);
+}
+
+.delete-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.post-content h3 {
+  margin: 0 0 10px;
+  color: #ffffff;
+  font-size: 22px;
+  letter-spacing: -0.4px;
+}
+
+.post-content p {
+  margin: 0;
+  color: #cbd5e1;
+  line-height: 1.7;
+}
+
+.post-image {
+  width: 100%;
+  max-height: 430px;
+  margin-top: 16px;
+  object-fit: cover;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+}
+
+.post-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  color: #aab3c5;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.like-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 15px;
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.like-button.liked {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.95), rgba(239, 68, 68, 0.9));
+}
+
+.like-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.comments-preview {
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.comments-preview strong {
+  color: #ffffff;
+}
+
+.comment-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.comment-item img {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.comment-item p {
+  margin: 0;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.detail-link {
+  color: #06b6d4;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.detail-link:hover {
+  color: #ffffff;
+}

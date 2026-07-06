@@ -72,8 +72,8 @@
               <div class="summary-icon">✦</div>
 
               <div>
-                <strong>0</strong>
-                <span>Publicaciones creadas</span>
+                <strong>{{ myLastPosts.length }}</strong>
+                <span>Últimas publicaciones visibles</span>
               </div>
             </div>
 
@@ -81,8 +81,10 @@
               <div class="summary-icon">♥</div>
 
               <div>
-                <strong>0</strong>
-                <span>Me gusta recibidos</span>
+                <strong>
+                  {{ myLastPosts[0]?.likesCount || 0 }}
+                </strong>
+                <span>Likes en la publicación más reciente</span>
               </div>
             </div>
 
@@ -90,17 +92,19 @@
               <div class="summary-icon">💬</div>
 
               <div>
-                <strong>0</strong>
-                <span>Comentarios recibidos</span>
+                <strong>
+                  {{ myLastPosts[0]?.commentsCount || 0 }}
+                </strong>
+                <span>Comentarios en la publicación más reciente</span>
               </div>
             </div>
           </div>
 
           <div class="profile-note">
-            <strong>Datos reales del usuario</strong>
+            <strong>Sprint 2 conectado</strong>
             <p>
-              Esta pantalla ya muestra la información real del usuario logueado.
-              Las publicaciones, likes y comentarios se conectarán en el Sprint 2.
+              Esta pantalla ya muestra los datos reales del usuario y sus últimas
+              3 publicaciones obtenidas desde MongoDB.
             </p>
           </div>
         </aside>
@@ -109,43 +113,68 @@
           <div class="section-header">
             <div>
               <span>Actividad reciente</span>
-              <h2>Últimas publicaciones</h2>
+              <h2>Últimas 3 publicaciones</h2>
             </div>
 
-            <button class="btn btn-secondary" type="button" disabled>
-              Ver todas
+            <button
+              class="btn btn-secondary"
+              type="button"
+              (click)="loadMyLastPosts()"
+              [disabled]="isLoadingPosts"
+            >
+              {{ isLoadingPosts ? 'Actualizando...' : 'Actualizar' }}
             </button>
           </div>
 
-          <article class="profile-post glass-card featured">
-            <div class="post-header">
-              <div>
-                <span class="post-date">Sprint 2</span>
-                <h3>Publicaciones reales pendientes de conexión</h3>
+          @if (postsError) {
+            <div class="form-alert error-alert">
+              {{ postsError }}
+            </div>
+          }
+
+          @if (isLoadingPosts) {
+            <article class="profile-post glass-card">
+              <div class="post-header">
+                <div>
+                  <span class="post-date">MongoDB</span>
+                  <h3>Cargando publicaciones...</h3>
+                </div>
               </div>
 
-              <button class="post-options" type="button" aria-label="Más opciones" disabled>
-                ⋯
-              </button>
-            </div>
+              <p>
+                Estamos trayendo tus últimas publicaciones reales desde el backend.
+              </p>
+            </article>
+          } @else {
+            @if (myLastPosts.length > 0) {
+              <section class="profile-posts-list">
+                @for (post of myLastPosts; track post.id) {
+                  <app-post-card
+                    [post]="post"
+                    [currentUser]="currentUser()"
+                    [isProcessing]="processingPostId === post.id"
+                    (like)="likePost($event)"
+                    (unlike)="unlikePost($event)"
+                    (delete)="deletePost($event)"
+                  />
+                }
+              </section>
+            } @else {
+              <article class="profile-post glass-card">
+                <div class="post-header">
+                  <div>
+                    <span class="post-date">Sin actividad</span>
+                    <h3>Todavía no creaste publicaciones</h3>
+                  </div>
+                </div>
 
-            <p>
-              En el siguiente sprint vamos a conectar esta sección con MongoDB para mostrar
-              las últimas 3 publicaciones reales del usuario logueado.
-            </p>
-
-            <div class="post-visual">
-              <div>
-                <span>Perfil conectado</span>
-                <strong>{{ user.nombreUsuario }}</strong>
-              </div>
-            </div>
-
-            <div class="post-stats">
-              <span>♥ 0 me gusta</span>
-              <span>💬 0 comentarios</span>
-            </div>
-          </article>
+                <p>
+                  Cuando publiques contenido en el feed, tus últimas 3 publicaciones
+                  van a aparecer automáticamente en esta sección.
+                </p>
+              </article>
+            }
+          }
         </section>
       </section>
     </section>

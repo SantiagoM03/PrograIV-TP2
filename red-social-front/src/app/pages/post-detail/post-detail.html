@@ -1,0 +1,197 @@
+<main class="page post-detail-page">
+  <section class="page-container detail-layout">
+    <a routerLink="/publicaciones" class="back-link">
+      ← Volver a publicaciones
+    </a>
+
+    @if (pageError) {
+      <article class="glass-card state-card error-state">
+        <h1>No pudimos cargar la publicación</h1>
+        <p>{{ pageError }}</p>
+      </article>
+    } @else {
+      @if (isLoadingPost) {
+        <article class="glass-card state-card">
+          <h1>Cargando publicación...</h1>
+          <p>Estamos trayendo la publicación desde MongoDB.</p>
+        </article>
+      } @else {
+        @if (post; as postData) {
+          <article class="post-detail-card glass-card">
+            <header class="detail-header">
+              <div class="author">
+                <img
+                  [src]="postData.authorImagenPerfilUrl"
+                  [alt]="'Foto de ' + postData.authorNombreUsuario"
+                >
+
+                <div>
+                  <strong>
+                    {{ postData.authorNombre }} {{ postData.authorApellido }}
+                  </strong>
+
+                  <span>
+                    @{{ postData.authorNombreUsuario }} · {{ formatDate(postData.createdAt) }}
+                  </span>
+                </div>
+              </div>
+            </header>
+
+            <section class="detail-content">
+              <h1>{{ postData.title }}</h1>
+
+              <p>{{ postData.description }}</p>
+
+              @if (postData.imageUrl) {
+                <img
+                  class="detail-image"
+                  [src]="postData.imageUrl"
+                  [alt]="postData.title"
+                >
+              }
+            </section>
+
+            <footer class="detail-stats">
+              <span>♥ {{ postData.likesCount }} me gusta</span>
+              <span>💬 {{ postData.commentsCount }} comentarios</span>
+            </footer>
+          </article>
+
+          <section class="comments-section glass-card">
+            <div class="comments-header">
+              <div>
+                <span class="section-eyebrow">Comentarios</span>
+                <h2>Conversación de la publicación</h2>
+              </div>
+
+              <strong>{{ commentsTotal }} comentarios</strong>
+            </div>
+
+            @if (currentUser()) {
+              <form
+                class="comment-form"
+                [formGroup]="commentForm"
+                (ngSubmit)="addComment()"
+              >
+                <textarea
+                  formControlName="text"
+                  placeholder="Escribí un comentario..."
+                ></textarea>
+
+                @if (text?.touched && text?.hasError('required')) {
+                  <small class="error">El comentario es obligatorio.</small>
+                }
+
+                @if (text?.touched && text?.hasError('maxlength')) {
+                  <small class="error">El comentario no puede superar los 500 caracteres.</small>
+                }
+
+                <button
+                  class="btn btn-primary"
+                  type="submit"
+                  [disabled]="commentForm.invalid || isAddingComment"
+                >
+                  {{ isAddingComment ? 'Comentando...' : 'Comentar' }}
+                </button>
+              </form>
+            } @else {
+              <div class="login-note">
+                Para comentar, primero tenés que iniciar sesión.
+              </div>
+            }
+
+            @if (commentError) {
+              <div class="form-alert error-alert">
+                {{ commentError }}
+              </div>
+            }
+
+            <div class="comments-list">
+              @for (comment of comments; track comment.id) {
+                <article class="comment-card">
+                  <img
+                    [src]="comment.userImagenPerfilUrl"
+                    [alt]="'Foto de ' + comment.userNombreUsuario"
+                  >
+
+                  <div class="comment-body">
+                    <div class="comment-top">
+                      <div>
+                        <strong>@{{ comment.userNombreUsuario }}</strong>
+                        <span>{{ formatDate(comment.createdAt) }}</span>
+                      </div>
+
+                      @if (comment.edited) {
+                        <em>Editado</em>
+                      }
+                    </div>
+
+                    @if (editingCommentId === comment.id) {
+                      <form
+                        class="edit-comment-form"
+                        [formGroup]="editCommentForm"
+                        (ngSubmit)="saveEditedComment(comment)"
+                      >
+                        <textarea formControlName="text"></textarea>
+
+                        @if (editText?.touched && editText?.hasError('required')) {
+                          <small class="error">El comentario no puede quedar vacío.</small>
+                        }
+
+                        <div class="edit-actions">
+                          <button
+                            class="btn btn-primary"
+                            type="submit"
+                            [disabled]="editCommentForm.invalid"
+                          >
+                            Guardar
+                          </button>
+
+                          <button
+                            class="btn btn-secondary"
+                            type="button"
+                            (click)="cancelEditComment()"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </form>
+                    } @else {
+                      <p>{{ comment.text }}</p>
+
+                      @if (canEditComment(comment)) {
+                        <button
+                          type="button"
+                          class="edit-link"
+                          (click)="startEditComment(comment)"
+                        >
+                          Editar comentario
+                        </button>
+                      }
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+
+            @if (isLoadingComments) {
+              <div class="loading-comments">
+                Cargando comentarios...
+              </div>
+            }
+
+            @if (canLoadMoreComments && !isLoadingComments) {
+              <button
+                type="button"
+                class="btn btn-secondary load-more"
+                (click)="loadMoreComments()"
+              >
+                Cargar más comentarios
+              </button>
+            }
+          </section>
+        }
+      }
+    }
+  </section>
+</main>

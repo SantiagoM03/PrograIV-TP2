@@ -512,6 +512,20 @@
   }
 }
 
+.profile-posts-list {
+  display: grid;
+  gap: 18px;
+}
+
+.form-alert {
+  padding: 14px 16px;
+  border-radius: 18px;
+  color: #ffffff;
+  font-weight: 800;
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
 @media (max-width: 620px) {
   .profile-main {
     padding: 0 22px 26px;

@@ -1,265 +1,220 @@
 <main class="page posts-page">
   <section class="page-container posts-layout">
-    <aside class="feed-panel glass-card">
-      <div class="feed-panel-content">
-        <span class="section-eyebrow">Feed social</span>
+    <section class="feed-main">
+      <article class="feed-hero glass-card">
+        <div>
+          <span class="section-eyebrow">Publicaciones</span>
 
-        <h1>
-          Descubrí qué está pasando en la red
-        </h1>
+          <h1 class="page-title">
+            Descubrí lo último de la <span>comunidad</span>
+          </h1>
 
-        <p>
-          Un espacio para compartir publicaciones, ideas, momentos e interactuar con otros usuarios.
-        </p>
-
-        <button class="btn btn-primary" type="button">
-          Crear publicación
-        </button>
+          <p class="page-subtitle">
+            El feed muestra publicaciones reales desde MongoDB, ordenadas por fecha
+            por defecto, con paginación, likes y baja lógica.
+          </p>
+        </div>
 
         <div class="feed-stats">
-          <div>
-            <strong>128</strong>
-            <span>Publicaciones</span>
-          </div>
-
-          <div>
-            <strong>42</strong>
-            <span>Usuarios activos</span>
-          </div>
-
-          <div>
-            <strong>389</strong>
-            <span>Interacciones</span>
-          </div>
+          <strong>{{ total }}</strong>
+          <span>publicaciones activas</span>
         </div>
-      </div>
-    </aside>
+      </article>
 
-    <section class="feed-main">
-      <div class="feed-header glass-card">
+      @if (currentUser(); as user) {
+        <article class="create-post-card glass-card">
+          <div class="create-header">
+            <img
+              [src]="user.imagenPerfilUrl"
+              [alt]="'Foto de ' + user.nombreUsuario"
+            >
+
+            <div>
+              <h2>Crear publicación</h2>
+              <p>Compartí una idea, avance o momento con la red.</p>
+            </div>
+          </div>
+
+          <form [formGroup]="createPostForm" (ngSubmit)="createPost()">
+            <div class="form-field">
+              <label for="title">Título</label>
+
+              <input
+                id="title"
+                type="text"
+                formControlName="title"
+                placeholder="Ej: Avance del Sprint 2"
+              >
+
+              @if (title?.touched && title?.hasError('required')) {
+                <small class="error">El título es obligatorio.</small>
+              }
+
+              @if (title?.touched && title?.hasError('minlength')) {
+                <small class="error">El título debe tener al menos 3 caracteres.</small>
+              }
+
+              @if (title?.touched && title?.hasError('maxlength')) {
+                <small class="error">El título no puede superar los 100 caracteres.</small>
+              }
+            </div>
+
+            <div class="form-field">
+              <label for="description">Descripción</label>
+
+              <textarea
+                id="description"
+                formControlName="description"
+                placeholder="Escribí el contenido de tu publicación..."
+              ></textarea>
+
+              <div class="field-helper">
+                <span>Mínimo 10 caracteres.</span>
+                <span>{{ description?.value?.length || 0 }}/1000</span>
+              </div>
+
+              @if (description?.touched && description?.hasError('required')) {
+                <small class="error">La descripción es obligatoria.</small>
+              }
+
+              @if (description?.touched && description?.hasError('minlength')) {
+                <small class="error">La descripción debe tener al menos 10 caracteres.</small>
+              }
+
+              @if (description?.touched && description?.hasError('maxlength')) {
+                <small class="error">La descripción no puede superar los 1000 caracteres.</small>
+              }
+            </div>
+
+            <div class="upload-row">
+              <label for="postImage" class="upload-button">
+                Elegir imagen opcional
+
+                <input
+                  id="postImage"
+                  type="file"
+                  accept="image/*"
+                  (change)="onPostImageSelected($event)"
+                >
+              </label>
+
+              @if (selectedPostImageName) {
+                <span class="selected-file">{{ selectedPostImageName }}</span>
+              } @else {
+                <span class="selected-file muted">Sin imagen seleccionada</span>
+              }
+            </div>
+
+            @if (postImagePreview) {
+              <img
+                class="post-preview"
+                [src]="postImagePreview"
+                alt="Vista previa de publicación"
+              >
+            }
+
+            @if (createError) {
+              <div class="form-alert error-alert">
+                {{ createError }}
+              </div>
+            }
+
+            <div class="create-actions">
+              <button
+                class="btn btn-primary"
+                type="submit"
+                [disabled]="createPostForm.invalid || isCreating"
+              >
+                {{ isCreating ? 'Publicando...' : 'Publicar' }}
+              </button>
+            </div>
+          </form>
+        </article>
+      }
+
+      <section class="feed-toolbar glass-card">
         <div>
-          <span>Publicaciones</span>
-          <h2>Feed principal</h2>
+          <strong>Ordenar publicaciones</strong>
+          <span>Por defecto se muestran las más recientes.</span>
         </div>
 
-        <div class="feed-filters">
-          <button class="active" type="button">Recientes</button>
-          <button type="button">Más gustadas</button>
-        </div>
-      </div>
-
-      <article class="composer-card glass-card">
-        <div class="composer-avatar">
-          <img src="https://i.pravatar.cc/120?img=15" alt="Foto de perfil">
-        </div>
-
-        <div class="composer-content">
-          <strong>¿Qué querés compartir hoy?</strong>
-          <span>Más adelante este acceso abrirá el formulario para crear una publicación.</span>
-        </div>
-
-        <button class="composer-action" type="button">
-          Publicar
-        </button>
-      </article>
-
-      <article class="post-card glass-card featured-post">
-        <div class="post-top">
-          <div class="post-user">
-            <img src="https://i.pravatar.cc/120?img=32" alt="Foto de perfil de Sofía">
-
-            <div>
-              <strong>Sofía Ramírez</strong>
-              <span>@sofi.crea · hace 8 min</span>
-            </div>
-          </div>
-
-          <button class="post-menu" type="button" aria-label="Más opciones">
-            ⋯
-          </button>
-        </div>
-
-        <div class="post-body">
-          <div class="post-badge">Tendencia</div>
-
-          <h3>Diseñando una comunidad más humana</h3>
-
-          <p>
-            Las mejores redes no son solamente publicaciones: son conversaciones, perfiles con identidad
-            y espacios donde cada interacción se siente natural.
-          </p>
-
-          <div class="post-media post-media-gradient">
-            <div class="media-orbit orbit-one"></div>
-            <div class="media-orbit orbit-two"></div>
-            <div class="media-orbit orbit-three"></div>
-
-            <div class="media-card">
-              <span>Social Feed</span>
-              <strong>Conexiones reales en tiempo real</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="post-footer">
-          <button type="button">
-            <span>♥</span>
-            248 me gusta
+        <div class="sort-actions">
+          <button
+            type="button"
+            [class.active]="orderBy === 'fecha'"
+            (click)="changeOrder('fecha')"
+          >
+            Por fecha
           </button>
 
-          <button type="button">
-            <span>💬</span>
-            37 comentarios
-          </button>
-
-          <button type="button">
-            <span>↗</span>
-            Ver publicación
+          <button
+            type="button"
+            [class.active]="orderBy === 'likes'"
+            (click)="changeOrder('likes')"
+          >
+            Por me gusta
           </button>
         </div>
-      </article>
+      </section>
 
-      <article class="post-card glass-card">
-        <div class="post-top">
-          <div class="post-user">
-            <img src="https://i.pravatar.cc/120?img=12" alt="Foto de perfil de Mateo">
-
-            <div>
-              <strong>Mateo Duarte</strong>
-              <span>@mateo.dev · hace 26 min</span>
-            </div>
-          </div>
-
-          <button class="post-menu" type="button" aria-label="Más opciones">
-            ⋯
-          </button>
+      @if (feedError) {
+        <div class="form-alert error-alert">
+          {{ feedError }}
         </div>
+      }
 
-        <div class="post-body">
-          <h3>Primer avance del proyecto</h3>
+      @if (isLoading) {
+        <article class="empty-state glass-card">
+          <h2>Cargando publicaciones...</h2>
+          <p>Estamos trayendo el feed desde MongoDB.</p>
+        </article>
+      } @else {
+        @if (posts.length > 0) {
+          <section class="posts-list">
+            @for (post of posts; track post.id) {
+              <app-post-card
+                [post]="post"
+                [currentUser]="currentUser()"
+                [isProcessing]="processingPostId === post.id"
+                (like)="likePost($event)"
+                (unlike)="unlikePost($event)"
+                (delete)="deletePost($event)"
+              />
+            }
+          </section>
 
-          <p>
-            Ya tenemos navegación, login, registro y una línea visual clara. El próximo paso será conectar
-            esta experiencia con datos reales desde el backend.
-          </p>
-        </div>
+          <section class="pagination glass-card">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              [disabled]="!canGoPrevious"
+              (click)="goPreviousPage()"
+            >
+              Anterior
+            </button>
 
-        <div class="post-footer">
-          <button type="button">
-            <span>♥</span>
-            96 me gusta
-          </button>
+            <span>
+              Página {{ currentPage }} de {{ totalPages }}
+            </span>
 
-          <button type="button">
-            <span>💬</span>
-            14 comentarios
-          </button>
-
-          <button type="button">
-            <span>↗</span>
-            Ver publicación
-          </button>
-        </div>
-      </article>
-
-      <article class="post-card glass-card">
-        <div class="post-top">
-          <div class="post-user">
-            <img src="https://i.pravatar.cc/120?img=47" alt="Foto de perfil de Lucía">
-
-            <div>
-              <strong>Lucía Fernández</strong>
-              <span>@luchi.social · hace 1 h</span>
-            </div>
-          </div>
-
-          <button class="post-menu" type="button" aria-label="Más opciones">
-            ⋯
-          </button>
-        </div>
-
-        <div class="post-body">
-          <h3>Una interfaz también comunica</h3>
-
-          <p>
-            Si la aplicación es una red social, el diseño tiene que transmitir comunidad, movimiento,
-            contenido e interacción. No alcanza con una pantalla funcional.
-          </p>
-
-          <div class="post-media image-style">
-            <div class="image-style-content">
-              <span>UX</span>
-              <strong>Diseño consistente, claro y memorable</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="post-footer">
-          <button type="button">
-            <span>♥</span>
-            173 me gusta
-          </button>
-
-          <button type="button">
-            <span>💬</span>
-            22 comentarios
-          </button>
-
-          <button type="button">
-            <span>↗</span>
-            Ver publicación
-          </button>
-        </div>
-      </article>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              [disabled]="!canGoNext"
+              (click)="goNextPage()"
+            >
+              Siguiente
+            </button>
+          </section>
+        } @else {
+          <article class="empty-state glass-card">
+            <h2>No hay publicaciones todavía</h2>
+            <p>
+              Creá la primera publicación para empezar a completar el feed.
+            </p>
+          </article>
+        }
+      }
     </section>
-
-    <aside class="right-panel">
-      <section class="trend-card glass-card">
-        <h3>Temas activos</h3>
-
-        <div class="trend-item">
-          <span>#Angular</span>
-          <small>34 publicaciones</small>
-        </div>
-
-        <div class="trend-item">
-          <span>#NestJS</span>
-          <small>21 publicaciones</small>
-        </div>
-
-        <div class="trend-item">
-          <span>#MongoDB</span>
-          <small>18 publicaciones</small>
-        </div>
-      </section>
-
-      <section class="people-card glass-card">
-        <h3>Usuarios destacados</h3>
-
-        <div class="person-item">
-          <img src="https://i.pravatar.cc/80?img=20" alt="Foto de perfil">
-          <div>
-            <strong>Bruno Lima</strong>
-            <span>@bruno.code</span>
-          </div>
-        </div>
-
-        <div class="person-item">
-          <img src="https://i.pravatar.cc/80?img=27" alt="Foto de perfil">
-          <div>
-            <strong>Camila Torres</strong>
-            <span>@cami.ui</span>
-          </div>
-        </div>
-
-        <div class="person-item">
-          <img src="https://i.pravatar.cc/80?img=41" alt="Foto de perfil">
-          <div>
-            <strong>Tomás Silva</strong>
-            <span>@tomi.dev</span>
-          </div>
-        </div>
-      </section>
-    </aside>
   </section>
 </main>

@@ -2,7 +2,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
-
+import { JwtCookieGuard } from './guards/jwt-cookie.guard';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
@@ -105,12 +105,7 @@ type JwtExpiresIn = NonNullable<JwtModuleOptions['signOptions']>['expiresIn'];
     - preparar cookie;
     - devolver usuario seguro.
   */
-  providers: [AuthService],
-
-  /*
-    Exportamos AuthService por si después algún otro módulo
-    necesita usar lógica relacionada con autenticación.
-  */
-  exports: [AuthService],
+  providers: [AuthService, JwtCookieGuard],
+  exports: [AuthService, JwtModule, JwtCookieGuard],
 })
 export class AuthModule {}

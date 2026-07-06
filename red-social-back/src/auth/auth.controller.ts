@@ -12,14 +12,18 @@ import {
   Res,
   UploadedFile,
   UseInterceptors,
+  Get,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import type { Request, Response } from 'express';
-
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { JwtCookieGuard } from './guards/jwt-cookie.guard';
+import * as authenticatedUserInterface from './interfaces/authenticated-user.interface';
 
 /*
   Tipo mínimo para representar una imagen subida con Multer.
@@ -52,9 +56,71 @@ interface UploadedImageFile {
   - POST /api/auth/logout
 */
 @Controller('auth')
-export class AuthController {
+export class AuthController 
+{
   constructor(private readonly authService: AuthService) {}
 
+
+  /*
+    Endpoint de prueba/compatibilidad.
+
+    Lo dejamos como GET por si ya lo estabas usando en Postman,
+    pero para cumplir Sprint 3 vamos a usar POST /auth/autorizar.
+  */
+  @Get('autorizar')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtCookieGuard)
+  autorizarGet(@CurrentUser() user: authenticatedUserInterface.AuthenticatedUser) {
+    return {
+      message: 'Sesión válida.',
+      user,
+    };
+  }
+
+  /*
+    Sprint 3:
+    Ruta autorizar por POST.
+
+    Valida si el token es válido y no está vencido.
+    Si no es válido, JwtCookieGuard devuelve 401.
+    Si es válido, devolvemos los datos completos del usuario.
+  */
+  @Post('autorizar')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtCookieGuard)
+  async autorizarPost(@CurrentUser() user: authenticatedUserInterface.AuthenticatedUser) {
+    const authorizedUser = await this.authService.authorizeSession(user);
+
+    return {
+      message: 'Sesión válida.',
+      user: authorizedUser,
+    };
+  }
+
+  /*
+    Sprint 3:
+    Ruta refrescar por POST.
+
+    Valida el token actual.
+    Si es válido, genera un nuevo JWT de 15 minutos
+    y vuelve a guardarlo en cookie httpOnly.
+  */
+  @Post('refrescar')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtCookieGuard)
+  async refrescar(
+    @CurrentUser() user: authenticatedUserInterface.AuthenticatedUser,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const authResponse = await this.authService.refreshSession(user);
+
+    this.setAccessTokenCookie(res, authResponse.accessToken);
+
+    return {
+      message: 'Sesión refrescada correctamente.',
+      user: authResponse.user,
+    };
+  }
   /*
     Registro de usuario.
 

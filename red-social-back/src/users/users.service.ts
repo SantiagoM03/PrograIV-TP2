@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import {User, UserDocument, UserProfile} from './schemas/user.schema';
 
 export interface CreateUserData 
@@ -68,6 +68,15 @@ export class UsersService {
         nombreUsuario: nombreUsuario.trim().toLowerCase(),
       })
       .exec();
+  }
+
+  async findById(id: string): Promise<UserDocument | null> 
+  {
+    if (!Types.ObjectId.isValid(id)) {
+      return null;
+    }
+
+    return this.userModel.findById(id).exec();
   }
 
   /*

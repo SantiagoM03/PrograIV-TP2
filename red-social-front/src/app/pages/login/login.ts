@@ -28,10 +28,10 @@ export class Login {
     ],
 
     /*
-      En login NO validamos patrón de contraseña.
+      En login NO valido patrón de contraseña.
 
       Motivo:
-      - No queremos filtrar reglas de seguridad.
+      - No quiero filtrar reglas de seguridad.
       - Si la contraseña está mal, el backend responde:
         "Credenciales inválidas."
     */
@@ -73,12 +73,12 @@ export class Login {
       .login(loginData)
       .pipe(
         /*
-          finalize se ejecuta siempre:
+          finalize se me ejecuta siempre:
           - si el login sale bien;
           - si el backend devuelve 401;
           - si ocurre otro error.
 
-          Así evitamos que el botón quede clavado en "Ingresando...".
+          Así evito que el botón quede clavado en "Ingresando...".
         */
         finalize(() => {
           this.isLoading = false;

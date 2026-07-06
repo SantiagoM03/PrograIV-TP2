@@ -14,13 +14,13 @@ export class Navbar {
   private readonly router = inject(Router);
 
   /*
-    Señal con el usuario actual.
-    Si el usuario se registró o inició sesión, AuthService lo guarda acá.
+    Acá tengo la señal con el usuario actual.
+    Si el usuario se registró o inició sesión, AuthService me lo deja acá.
   */
   currentUser = this.authService.currentUser;
 
   /*
-    Señal booleana para saber si hay sesión.
+    Acá tengo la señal booleana para saber si hay sesión.
   */
   isLoggedIn = this.authService.isLoggedIn;
 
@@ -31,8 +31,8 @@ export class Navbar {
       },
       error: () => {
         /*
-          Si el logout falla por algún motivo, igual limpiamos la sesión local.
-          Esto evita que el usuario quede "trabado" visualmente.
+          Si el logout falla por algún motivo, igual limpio la sesión local.
+          Así evito que el usuario quede "trabado" visualmente.
         */
         this.authService.clearCurrentUser();
         this.router.navigateByUrl('/login');

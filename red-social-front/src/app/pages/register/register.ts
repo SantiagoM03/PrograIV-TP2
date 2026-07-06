@@ -111,9 +111,9 @@ export class Register {
       ],
 
       /*
-        Este campo no manda el archivo.
-        Solo sirve para validar que el usuario haya elegido una imagen.
-        El archivo real se guarda en selectedImageFile.
+        Este campo no me manda el archivo.
+        Solo me sirve para validar que el usuario haya elegido una imagen.
+        El archivo real lo guardo en selectedImageFile.
       */
       imagenPerfil: [
         '',
@@ -212,7 +212,7 @@ export class Register {
 
     /*
       Esto es lo importante:
-      acá guardamos el archivo real para mandarlo al backend en FormData.
+      acá guardo el archivo real para mandarlo al backend en FormData.
     */
     this.selectedImageFile = file;
 

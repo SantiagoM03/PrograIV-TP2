@@ -4,9 +4,9 @@ import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth';
 
 /*
-  Guard para rutas públicas.
+  Acá defino el guard para rutas públicas.
 
-  Se usa en:
+  Lo uso en:
   - Login
   - Registro
 

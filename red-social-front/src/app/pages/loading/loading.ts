@@ -16,10 +16,10 @@ export class Loading implements OnInit {
   ngOnInit(): void {
     /*
       Sprint 3:
-      Al iniciar la app desde la ruta raíz "/", mostramos una pantalla
-      de cargando y validamos la sesión contra POST /api/auth/autorizar.
+      Al iniciar la app desde la ruta raíz "/", muestro una pantalla
+      de cargando y valido la sesión contra POST /api/auth/autorizar.
 
-      Como el backend responde muy rápido, dejamos el spinner visible
+      Como el backend responde muy rápido, dejo el spinner visible
       al menos 1 segundo para que se note.
     */
     const minimumLoadingTime = 1000;

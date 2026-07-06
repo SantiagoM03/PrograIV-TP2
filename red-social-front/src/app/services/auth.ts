@@ -32,17 +32,17 @@ interface AuthBackendResponse {
 })
 export class AuthService {
   /*
-    URL base del backend NestJS.
-    Como en Nest tenemos app.setGlobalPrefix('api'),
+    Acá defino la URL base del backend NestJS.
+    Como en Nest tengo app.setGlobalPrefix('api'),
     todas las rutas empiezan con /api.
   */
   private readonly apiUrl = 'http://localhost:3000/api';
 
   /*
-    Guardamos el usuario actual en memoria y también en localStorage.
+    Acá guardo el usuario actual en memoria y también en localStorage.
 
-    El JWT real queda en cookie httpOnly.
-    El usuario en localStorage nos sirve para mostrar datos en la UI.
+    El JWT real me queda en cookie httpOnly.
+    El usuario en localStorage me sirve para mostrar datos en la UI.
   */
   private readonly currentUserSignal = signal<User | null>(
     this.getStoredUser(),
@@ -56,16 +56,28 @@ export class AuthService {
     () => this.currentUserSignal()?.perfil === 'administrador',
   );
 
+  /*
+    Sprint 3:
+    Acá manejo el timer de sesión.
+
+    El token vence a los 15 minutos.
+    A los 10 minutos muestro un modal avisando que quedan 5.
+  */
+  private sessionWarningTimeoutId: number | null = null;
+  private readonly showSessionModalSignal = signal(false);
+  readonly showSessionModal = this.showSessionModalSignal.asReadonly();
+
   constructor(private readonly http: HttpClient) {}
 
   /*
-    Registro real contra el backend.
+    Acá hago el registro real contra el backend.
 
-    Se manda FormData porque incluye imagen.
-    No seteamos Content-Type manualmente:
+    Mando FormData porque incluye imagen.
+    No seteo Content-Type manualmente:
     el navegador lo arma solo como multipart/form-data.
   */
-  register(data: RegisterRequest): Observable<User> {
+  register(data: RegisterRequest): Observable<User> 
+  {
     const formData = new FormData();
 
     formData.append('nombre', data.nombre);
@@ -82,26 +94,29 @@ export class AuthService {
     return this.http
       .post<AuthBackendResponse>(`${this.apiUrl}/auth/register`, formData, {
         /*
-          Necesario para que el navegador acepte la cookie httpOnly
+          Lo necesito para que el navegador acepte la cookie httpOnly
           que manda el backend.
         */
         withCredentials: true,
       })
       .pipe(
         map((response) => response.user),
-        tap((user) => this.setCurrentUser(user)),
+        tap((user) => {
+          this.setCurrentUser(user);
+            this.startSessionTimer();
+          }),
         catchError((error) => this.handleAuthError(error)),
       );
   }
 
   /*
-    Login real contra el backend.
+    Acá hago el login real contra el backend.
 
-    El backend acepta:
+    El backend me acepta:
     - correo
     - o nombre de usuario
 
-    Y devuelve el usuario seguro, sin passwordHash.
+    Y me devuelve el usuario seguro, sin passwordHash.
   */
   login(data: LoginRequest): Observable<User> {
     return this.http
@@ -110,16 +125,19 @@ export class AuthService {
       })
       .pipe(
         map((response) => response.user),
-        tap((user) => this.setCurrentUser(user)),
+        tap((user) => {
+          this.setCurrentUser(user);
+            this.startSessionTimer();
+          }),
         catchError((error) => this.handleAuthError(error)),
       );
   }
 
   /*
-    Logout real contra el backend.
+    Acá hago el logout real contra el backend.
 
-    El backend borra la cookie access_token.
-    Después limpiamos el usuario local.
+    El backend me borra la cookie access_token.
+    Después limpio el usuario local.
   */
   logout(): Observable<void> {
     return this.http
@@ -131,7 +149,10 @@ export class AuthService {
         },
       )
       .pipe(
-        tap(() => this.clearCurrentUser()),
+        tap(() => {
+          this.stopSessionTimer();
+          this.clearCurrentUser();
+        }),
         map(() => undefined),
         catchError((error) => this.handleAuthError(error)),
       );
@@ -139,18 +160,18 @@ export class AuthService {
 
     /*
     Sprint 3:
-    Valida la sesión contra el backend.
+    Acá valido la sesión contra el backend.
 
     POST /api/auth/autorizar
 
     Si la cookie access_token es válida:
     - el backend devuelve el usuario;
-    - actualizamos currentUser;
-    - dejamos pasar a publicaciones.
+    - actualizo currentUser;
+    - dejo pasar a publicaciones.
 
     Si no es válida:
-    - limpiamos usuario local;
-    - el componente loading redirige al login.
+    - limpio usuario local;
+    - el componente loading me redirige al login.
   */
   authorize(): Observable<User> {
     return this.http
@@ -163,7 +184,10 @@ export class AuthService {
       )
       .pipe(
         map((response) => response.user),
-        tap((user) => this.setCurrentUser(user)),
+        tap((user) => {
+          this.setCurrentUser(user);
+          this.startSessionTimer();
+        }),
         catchError((error) => {
           this.clearCurrentUser();
           return this.handleAuthError(error);
@@ -173,12 +197,12 @@ export class AuthService {
 
   /*
     Sprint 3:
-    Refresca la sesión.
+    Acá refresco la sesión.
 
     POST /api/auth/refrescar
 
-    El backend valida el token actual.
-    Si está vigente, genera otro token de 15 minutos
+    Acá el backend me valida el token actual.
+    Si está vigente, me genera otro token de 15 minutos
     y lo vuelve a guardar en cookie httpOnly.
   */
   refreshSession(): Observable<User> {
@@ -192,7 +216,10 @@ export class AuthService {
       )
       .pipe(
         map((response) => response.user),
-        tap((user) => this.setCurrentUser(user)),
+        tap((user) => {
+          this.setCurrentUser(user);
+            this.startSessionTimer();
+          }),
         catchError((error) => {
           this.clearCurrentUser();
           return this.handleAuthError(error);
@@ -201,7 +228,7 @@ export class AuthService {
   }
 
   /*
-    Guarda el usuario en memoria y localStorage.
+    Acá guardo el usuario en memoria y localStorage.
   */
   private setCurrentUser(user: User): void {
     this.currentUserSignal.set(user);
@@ -209,15 +236,16 @@ export class AuthService {
   }
 
   /*
-    Limpia usuario local.
+    Acá limpio el usuario local.
   */
   clearCurrentUser(): void {
+    this.stopSessionTimer();
     this.currentUserSignal.set(null);
     localStorage.removeItem('red-social-user');
   }
 
   /*
-    Recupera usuario guardado al refrescar la pantalla.
+    Acá recupero el usuario guardado al refrescar la pantalla.
   */
   private getStoredUser(): User | null {
     const storedUser = localStorage.getItem('red-social-user');
@@ -234,10 +262,52 @@ export class AuthService {
     }
   }
 
-  /*
-    Normalizamos errores del backend para mostrarlos fácil en la UI.
+    /*
+    Acá inicio el contador de sesión.
 
-    NestJS puede devolver:
+    En producción uso 10 minutos:
+    10 * 60 * 1000
+
+    Para probar rápido, puedo cambiar temporalmente a:
+    10 * 1000
+  */
+  startSessionTimer(): void 
+  {
+    this.stopSessionTimer();
+    const tenMinutes = 10 * 60 * 1000;
+
+    this.sessionWarningTimeoutId = window.setTimeout(() => 
+    {
+      this.showSessionModalSignal.set(true);
+    }, tenMinutes);
+  }
+
+  /*
+    Acá detengo el contador y oculto el modal.
+  */
+  stopSessionTimer(): void 
+  {
+    if (this.sessionWarningTimeoutId !== null) 
+    {
+      window.clearTimeout(this.sessionWarningTimeoutId);
+      this.sessionWarningTimeoutId = null;
+    }
+
+    this.showSessionModalSignal.set(false);
+  }
+
+  /*
+    Acá oculto el modal sin cerrar sesión.
+  */
+  hideSessionModal(): void 
+  {
+    this.showSessionModalSignal.set(false);
+  }
+
+  /*
+    Acá normalizo errores del backend para mostrarlos fácil en la UI.
+
+    NestJS me puede devolver:
     {
       message: "Credenciales inválidas."
     }

@@ -213,7 +213,7 @@ export class Posts implements OnInit {
 
           /*
             La consigna pide que por defecto el listado esté ordenado por fecha.
-            Como la publicación recién creada es la más nueva, la agregamos arriba
+            Como la publicación recién creada es la más nueva, la agrego arriba
             sin volver a disparar un GET que puede dejar el loader colgado.
           */
           this.orderBy = 'fecha';
@@ -284,7 +284,7 @@ export class Posts implements OnInit {
         next: () => {
           /*
             Como el backend hace baja lógica, en el feed simplemente
-            quitamos la publicación de la lista visible.
+            quito la publicación de la lista visible.
           */
           this.posts = this.posts.filter((item) => item.id !== post.id);
           this.total = Math.max(this.total - 1, 0);

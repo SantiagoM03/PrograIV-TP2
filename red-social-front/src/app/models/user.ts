@@ -10,7 +10,7 @@ export interface User {
   descripcionBreve: string;
 
   /*
-    El backend devuelve imagenPerfilUrl.
+    El backend me devuelve imagenPerfilUrl.
     Esta URL apunta a:
     http://localhost:3000/uploads/users/...
   */

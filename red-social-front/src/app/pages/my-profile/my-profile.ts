@@ -17,12 +17,12 @@ export class MyProfile implements OnInit {
   private readonly postsService = inject(PostsService);
 
   /*
-    Usuario real logueado.
+    Acá tengo el usuario real logueado.
   */
   currentUser = this.authService.currentUser;
 
   /*
-    Últimas 3 publicaciones reales del usuario.
+    Acá guardo las últimas 3 publicaciones reales del usuario.
   */
   myLastPosts: Post[] = [];
 
@@ -46,7 +46,7 @@ export class MyProfile implements OnInit {
 
     /*
       Sprint 2 pide últimas 3 publicaciones del usuario.
-      Usamos el GET del backend con:
+      Uso el GET del backend con:
       - userId
       - orderBy=fecha
       - offset=0

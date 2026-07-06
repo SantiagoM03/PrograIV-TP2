@@ -1,0 +1,34 @@
+<div class="session-backdrop">
+  <article class="session-modal glass-card">
+    <div class="session-icon">
+      !
+    </div>
+
+    <span class="section-eyebrow">Sesión por vencer</span>
+
+    <h2>Quedan 5 minutos de sesión</h2>
+
+    <p>
+      Tu token vence a los 15 minutos. Podés extender tu sesión ahora para seguir
+      usando la red social sin volver a iniciar sesión.
+    </p>
+
+    <div class="session-actions">
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="onExtendSession()"
+      >
+        Extender sesión
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="onLogout()"
+      >
+        Cerrar sesión
+      </button>
+    </div>
+  </article>
+</div>

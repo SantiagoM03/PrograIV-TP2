@@ -126,8 +126,8 @@ export class PostDetail implements OnInit {
       .subscribe({
         next: (response) => {
           /*
-            No borramos los comentarios anteriores.
-            Agregamos los nuevos debajo, como pide el Sprint 3.
+            No borro los comentarios anteriores.
+            Agrego los nuevos debajo, como pide el Sprint 3.
           */
           this.comments = [...this.comments, ...response.items];
           this.commentsOffset = this.comments.length;
@@ -167,8 +167,8 @@ export class PostDetail implements OnInit {
             Sprint 3 pide que en la primera carga llegue una cantidad limitada
             y que el resto se traiga con "Cargar más".
 
-            Por eso, cuando agregamos un comentario nuevo, lo ponemos arriba,
-            pero mantenemos visible solamente commentsLimit comentarios.
+            Por eso, cuando agrego un comentario nuevo, lo pongo arriba,
+            pero mantengo visible solamente commentsLimit comentarios.
           */
           this.comments = [createdComment, ...this.comments].slice(
             0,
@@ -176,14 +176,14 @@ export class PostDetail implements OnInit {
           );
 
           /*
-            Aumentamos el total real de comentarios.
+            Aumento el total real de comentarios.
             Si total > comments.length, entonces aparece "Cargar más comentarios".
           */
           this.commentsTotal = this.commentsTotal + 1;
 
           /*
             Como ahora la lista visible puede seguir teniendo 5 comentarios,
-            el próximo offset debe coincidir con los comentarios visibles.
+            el próximo offset me tiene que coincidir con los comentarios visibles.
           */
           this.commentsOffset = this.comments.length;
 

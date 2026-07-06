@@ -4,7 +4,8 @@ import {
   provideZoneChangeDetection,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import {provideHttpClient, withFetch, withInterceptors} from '@angular/common/http';
+import { authErrorInterceptor } from './interceptors/auth-error.interceptor';
 
 import { routes } from './app.routes';
 
@@ -15,13 +16,16 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
 
     /*
-      Habilita HttpClient en toda la app.
+      Acá habilito HttpClient en toda la app.
 
-      Lo usamos para conectar Angular con NestJS:
+      Lo uso para conectar Angular con NestJS:
       - POST /api/auth/register
       - POST /api/auth/login
       - POST /api/auth/logout
     */
-    provideHttpClient(withFetch()),
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([authErrorInterceptor]),
+    ),
   ],
 };

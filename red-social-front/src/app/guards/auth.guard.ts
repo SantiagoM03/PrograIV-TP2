@@ -4,15 +4,15 @@ import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth';
 
 /*
-  Guard para rutas privadas.
+  Acá defino el guard para rutas privadas.
 
-  Se usa en pantallas que requieren usuario logueado,
+  Lo uso en pantallas que requieren usuario logueado,
   por ejemplo:
   - Mi perfil
   - Crear publicación
   - Dashboard admin más adelante
 
-  Si no hay usuario logueado, redirige a /login.
+  Si no hay usuario logueado, redirijo a /login.
 */
 export const authGuard: CanActivateFn = () => {
   const authService = inject(AuthService);

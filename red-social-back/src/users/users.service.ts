@@ -79,6 +79,33 @@ export class UsersService {
     return this.userModel.findById(id).exec();
   }
 
+  async findAllUsers(): Promise<UserDocument[]> 
+  {
+    return this.userModel
+      .find()
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async setUserEnabled(id: string, habilitado: boolean,): Promise<UserDocument | null> 
+  {
+    if (!Types.ObjectId.isValid(id)) {
+      return null;
+    }
+
+    return this.userModel
+      .findByIdAndUpdate(
+        id,
+        {
+          habilitado,
+        },
+        {
+          new: true,
+        },
+      )
+      .exec();
+  }
+
   /*
     Busca un usuario por correo o nombre de usuario.
 

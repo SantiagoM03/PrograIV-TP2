@@ -1,11 +1,12 @@
 /* eslint-disable prettier/prettier */
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { JwtCookieGuard } from './guards/jwt-cookie.guard';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
+import { AdminGuard } from '../auth/guards/admin.guard';
 
 /*
   Tipo que representa el valor permitido por JWT para expiresIn.
@@ -33,7 +34,7 @@ type JwtExpiresIn = NonNullable<JwtModuleOptions['signOptions']>['expiresIn'];
       - validar duplicados;
       - validar login.
     */
-    UsersModule,
+    forwardRef(() => UsersModule),
 
     /*
       JwtModule permite generar y validar tokens JWT.
@@ -105,7 +106,7 @@ type JwtExpiresIn = NonNullable<JwtModuleOptions['signOptions']>['expiresIn'];
     - preparar cookie;
     - devolver usuario seguro.
   */
-  providers: [AuthService, JwtCookieGuard],
-  exports: [AuthService, JwtModule, JwtCookieGuard],
+  providers: [AuthService, JwtCookieGuard, AdminGuard],
+  exports: [AuthService, JwtModule, JwtCookieGuard, AdminGuard],
 })
 export class AuthModule {}

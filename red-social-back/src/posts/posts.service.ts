@@ -15,7 +15,7 @@ import { mkdir, unlink, writeFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import { extname, join } from 'path';
 import { Model, Types } from 'mongoose';
-
+import { StatisticsQueryDto } from '../auth/dto/statistics-query.dto';
 import { AuthenticatedUser } from '../auth/interfaces/authenticated-user.interface';
 import { UserProfile } from '../users/schemas/user.schema';
 import { UsersService } from '../users/users.service';
@@ -443,6 +443,185 @@ export class PostsService
     return this.toCommentResponse(comment);
   }
 
+    /*
+    Estadística 1:
+    Cantidad de publicaciones realizadas por cada usuario
+    en un lapso de tiempo.
+  */
+  async getPostsByUserStats(query: StatisticsQueryDto): Promise<
+    {
+      userId: string;
+      nombreUsuario: string;
+      nombreCompleto: string;
+      totalPublicaciones: number;
+    }[]
+  > {
+    const { fromDate, toDate } = this.getDateRange(query);
+
+    const results = await this.postModel
+      .aggregate<{
+        _id: Types.ObjectId;
+        nombreUsuario: string;
+        nombre: string;
+        apellido: string;
+        totalPublicaciones: number;
+      }>([
+        {
+          $match: {
+            isDeleted: false,
+            createdAt: {
+              $gte: fromDate,
+              $lte: toDate,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: '$authorId',
+            nombreUsuario: { $first: '$authorNombreUsuario' },
+            nombre: { $first: '$authorNombre' },
+            apellido: { $first: '$authorApellido' },
+            totalPublicaciones: { $sum: 1 },
+          },
+        },
+        {
+          $sort: {
+            totalPublicaciones: -1,
+          },
+        },
+      ])
+      .exec();
+
+    return results.map((item) => ({
+      userId: String(item._id),
+      nombreUsuario: item.nombreUsuario,
+      nombreCompleto: `${item.nombre} ${item.apellido}`,
+      totalPublicaciones: item.totalPublicaciones,
+    }));
+  }
+
+  /*
+    Estadística 2:
+    Cantidad de comentarios realizados en un lapso de tiempo.
+
+    La devolvemos agrupada por día para poder graficarla como línea o barras.
+  */
+  async getCommentsByDayStats(query: StatisticsQueryDto): Promise<
+    {
+      date: string;
+      totalComentarios: number;
+    }[]
+  > {
+    const { fromDate, toDate } = this.getDateRange(query);
+
+    const results = await this.postModel
+      .aggregate<{
+        _id: string;
+        totalComentarios: number;
+      }>([
+        {
+          $match: {
+            isDeleted: false,
+          },
+        },
+        {
+          $unwind: '$comments',
+        },
+        {
+          $match: {
+            'comments.createdAt': {
+              $gte: fromDate,
+              $lte: toDate,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              $dateToString: {
+                format: '%Y-%m-%d',
+                date: '$comments.createdAt',
+              },
+            },
+            totalComentarios: { $sum: 1 },
+          },
+        },
+        {
+          $sort: {
+            _id: 1,
+          },
+        },
+      ])
+      .exec();
+
+    return results.map((item) => ({
+      date: item._id,
+      totalComentarios: item.totalComentarios,
+    }));
+  }
+
+  /*
+    Estadística 3:
+    Cantidad de comentarios en cada publicación
+    en un lapso de tiempo.
+  */
+  async getCommentsByPostStats(query: StatisticsQueryDto): Promise<
+    {
+      postId: string;
+      title: string;
+      authorNombreUsuario: string;
+      totalComentarios: number;
+    }[]
+  > {
+    const { fromDate, toDate } = this.getDateRange(query);
+
+    const results = await this.postModel
+      .aggregate<{
+        _id: Types.ObjectId;
+        title: string;
+        authorNombreUsuario: string;
+        totalComentarios: number;
+      }>([
+        {
+          $match: {
+            isDeleted: false,
+          },
+        },
+        {
+          $unwind: '$comments',
+        },
+        {
+          $match: {
+            'comments.createdAt': {
+              $gte: fromDate,
+              $lte: toDate,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: '$_id',
+            title: { $first: '$title' },
+            authorNombreUsuario: { $first: '$authorNombreUsuario' },
+            totalComentarios: { $sum: 1 },
+          },
+        },
+        {
+          $sort: {
+            totalComentarios: -1,
+          },
+        },
+      ])
+      .exec();
+
+    return results.map((item) => ({
+      postId: String(item._id),
+      title: item.title,
+      authorNombreUsuario: item.authorNombreUsuario,
+      totalComentarios: item.totalComentarios,
+    }));
+  }
+
   private async findActivePostOrFail(postId: string): Promise<PostDocument> {
     if (!Types.ObjectId.isValid(postId)) {
       throw new BadRequestException('El id de la publicación no es válido.');
@@ -493,6 +672,39 @@ export class PostsService
         Si el archivo no existe, no cortamos la ejecución.
       */
     }
+  }
+
+  /*
+    Obtiene rango de fechas para estadísticas.
+
+    Si no se envía from/to:
+    - usa últimos 30 días por defecto.
+
+    Esto permite que el frontend siempre pueda pedir estadísticas,
+    pero también elegir un lapso concreto.
+  */
+  private getDateRange(query: StatisticsQueryDto): {
+    fromDate: Date;
+    toDate: Date;
+  } {
+    const now = new Date();
+
+    const defaultFromDate = new Date();
+    defaultFromDate.setDate(now.getDate() - 30);
+
+    const fromDate = query.from ? new Date(query.from) : defaultFromDate;
+    const toDate = query.to ? new Date(query.to) : now;
+
+    /*
+      Ajustamos el final del día para que "to=2026-01-01"
+      incluya todo ese día.
+    */
+    toDate.setHours(23, 59, 59, 999);
+
+    return {
+      fromDate,
+      toDate,
+    };
   }
 
   private toCommentResponse(comment: StoredPostComment): CommentResponse 

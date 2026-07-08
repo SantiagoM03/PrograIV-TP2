@@ -7,6 +7,7 @@ import { UsersModule } from '../users/users.module';
 import { PostsController } from './posts.controller';
 import { PostsService } from './posts.service';
 import { Post, PostSchema } from './schemas/post.schema';
+import { StatisticsController } from './statistics.controller';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { Post, PostSchema } from './schemas/post.schema';
     UsersModule,
     AuthModule,
   ],
-  controllers: [PostsController, CommentsController],
+  controllers: [PostsController, CommentsController, StatisticsController],
   providers: [PostsService],
   exports: [PostsService],
 })

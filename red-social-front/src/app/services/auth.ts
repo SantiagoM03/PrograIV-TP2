@@ -317,7 +317,8 @@ export class AuthService {
       message: ["El correo debe tener un formato válido.", "..."]
     }
   */
-  private handleAuthError(error: HttpErrorResponse) {
+  private handleAuthError(error: HttpErrorResponse) 
+  {
     const backendMessage = error.error?.message;
 
     if (Array.isArray(backendMessage)) {
@@ -326,6 +327,16 @@ export class AuthService {
 
     if (typeof backendMessage === 'string') {
       return throwError(() => new Error(backendMessage));
+    }
+
+    if (error.status === 401) {
+      return throwError(() => new Error('Credenciales inválidas.'));
+    }
+
+    if (error.status === 403) {
+      return throwError(
+        () => new Error('Tu usuario se encuentra deshabilitado.'),
+      );
     }
 
     return throwError(

@@ -84,7 +84,7 @@
       </article>
 
       <article class="summary-card glass-card">
-        <span>Visitas a perfiles</span>
+        <span>Visitas a mi perfil</span>
         <strong>{{ totalVisitas }}</strong>
         <small>visitas de otros usuarios</small>
       </article>
@@ -292,7 +292,7 @@
           <div class="chart-header">
             <div>
               <span class="section-eyebrow">Gráfico de burbujas</span>
-              <h2>Visitas a perfiles</h2>
+              <h2>Usuarios que visitaron mi perfil</h2>
             </div>
 
             <strong>{{ totalVisitas }} total</strong>
@@ -300,11 +300,11 @@
 
           @if (profileVisits.length === 0) {
             <div class="empty-chart">
-              No hay visitas a perfiles en el lapso seleccionado.
+              No hay visitas a tu perfil en el lapso seleccionado.
             </div>
           } @else {
             <div class="bubble-chart">
-              @for (item of profileVisits; track item.userId) {
+              @for (item of profileVisits; track item.visitorUserId) {
                 <div
                   class="visit-bubble"
                   [style.width.px]="getVisitBubbleSize(item.totalVisitas)"

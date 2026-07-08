@@ -13,6 +13,8 @@ import { JwtCookieGuard } from '../auth/guards/jwt-cookie.guard';
 import { StatisticsQueryDto } from '../auth/dto/statistics-query.dto';
 import { PostsService } from './posts.service';
 import { AnalyticsService } from '../analytics/analytics.service';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import * as authenticatedUserInterface from '../auth/interfaces/authenticated-user.interface';
 
 /*
   Acá manejo el controller de estadísticas.
@@ -96,5 +98,23 @@ export class StatisticsController
   @HttpCode(HttpStatus.OK)
   getLikesByDay(@Query() query: StatisticsQueryDto) {
     return this.analyticsService.getLikesByDayStats(query);
+  }
+
+  /*
+  Sprint 5:
+  Cantidad de visitas a mi perfil,
+  por parte de usuarios que no sean uno mismo.
+
+  Esta estadística toma al usuario logueado como dueño del perfil
+  y agrupa las visitas por usuario visitante.
+  */
+  @Get('my-profile-visits')
+  @HttpCode(HttpStatus.OK)
+  getMyProfileVisits(@Query() query: StatisticsQueryDto, @CurrentUser() currentUser: authenticatedUserInterface.AuthenticatedUser) 
+  {
+    return this.analyticsService.getMyProfileVisitsStats(
+      query,
+      currentUser.id,
+    );
   }
 }

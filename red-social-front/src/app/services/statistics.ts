@@ -58,6 +58,13 @@ export interface StatisticsDateRange {
   to: string;
 }
 
+export interface MyProfileVisitStat {
+  visitorUserId: string;
+  nombreUsuario: string;
+  nombreCompleto: string;
+  totalVisitas: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -147,5 +154,17 @@ export class StatisticsService
       'Ocurrió un error al obtener las estadísticas.';
 
     return throwError(() => new Error(message));
+  }
+
+  getMyProfileVisits(range: StatisticsDateRange): Observable<MyProfileVisitStat[]> {
+    return this.http
+      .get<MyProfileVisitStat[]>(
+        `${this.apiUrl}/statistics/my-profile-visits`,
+        {
+          params: this.buildDateParams(range),
+          withCredentials: true,
+        },
+      )
+      .pipe(catchError((error) => this.handleError(error)));
   }
 }

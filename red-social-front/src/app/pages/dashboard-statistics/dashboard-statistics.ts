@@ -11,6 +11,7 @@ import {
   PostsByUserStat,
   ProfileVisitsStat,
   StatisticsService,
+  MyProfileVisitStat
 } from '../../services/statistics';
 
 @Component({
@@ -34,7 +35,7 @@ export class DashboardStatistics implements OnInit {
     Sprint 5
   */
   loginsByUser: LoginsByUserStat[] = [];
-  profileVisits: ProfileVisitsStat[] = [];
+  profileVisits: MyProfileVisitStat[] = [];
   likesByDay: LikesByDayStat[] = [];
 
   isLoading = false;
@@ -237,7 +238,7 @@ export class DashboardStatistics implements OnInit {
         Sprint 5
       */
       loginsByUser: this.statisticsService.getLoginsByUser({ from, to }),
-      profileVisits: this.statisticsService.getProfileVisits({ from, to }),
+      profileVisits: this.statisticsService.getMyProfileVisits({ from, to }),
       likesByDay: this.statisticsService.getLikesByDay({ from, to }),
     })
       .pipe(

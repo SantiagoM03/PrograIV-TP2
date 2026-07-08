@@ -247,4 +247,65 @@ export class AnalyticsService {
       toDate,
     };
   }
+
+  async getMyProfileVisitsStats(query: StatisticsQueryDto, profileOwnerId: string): Promise<
+    {
+      visitorUserId: string;
+      nombreUsuario: string;
+      nombreCompleto: string;
+      totalVisitas: number;
+    }[]
+  > {
+    const { fromDate, toDate } = this.getDateRange(query);
+    const profileOwnerObjectId = new Types.ObjectId(profileOwnerId);
+
+    const results = await this.analyticsEventModel
+      .aggregate<{
+        _id: Types.ObjectId;
+        nombreUsuario: string;
+        nombreCompleto: string;
+        totalVisitas: number;
+      }>([
+        {
+          $match: {
+            type: AnalyticsEventType.ProfileVisit,
+            targetUserId: profileOwnerObjectId,
+            actorUserId: {
+              $ne: profileOwnerObjectId,
+            },
+            createdAt: {
+              $gte: fromDate,
+              $lte: toDate,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: '$actorUserId',
+            nombreUsuario: {
+              $first: '$actorNombreUsuario',
+            },
+            nombreCompleto: {
+              $first: '$actorNombreCompleto',
+            },
+            totalVisitas: {
+              $sum: 1,
+            },
+          },
+        },
+        {
+          $sort: {
+            totalVisitas: -1,
+          },
+        },
+      ])
+      .exec();
+
+    return results.map((item) => ({
+      visitorUserId: String(item._id),
+      nombreUsuario: item.nombreUsuario,
+      nombreCompleto: item.nombreCompleto,
+      totalVisitas: item.totalVisitas,
+    }));
+  }
 }

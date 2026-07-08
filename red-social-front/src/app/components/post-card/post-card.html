@@ -1,4 +1,4 @@
-<article class="post-card glass-card">
+<article  class="post-card glass-card" [appPostHeatAura]="post">
   <header class="post-header">
     <div class="author">
       <img
@@ -11,6 +11,10 @@
         <span>@{{ post.authorNombreUsuario }} · {{ formatDate(post.createdAt) }}</span>
       </div>
     </div>
+
+    <span class="post-heat-badge">
+      {{ post | postHeatLabel }}
+    </span>
 
     @if (canDelete) {
       <button
@@ -74,6 +78,9 @@
           <p>
             <b>@{{ comment.userNombreUsuario }}:</b>
             {{ comment.text }}
+            <span class="comment-mood">
+              {{ comment.text | contentMood }}
+            </span>
           </p>
         </div>
       }

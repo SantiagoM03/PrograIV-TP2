@@ -1,20 +1,30 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
-
 import { Post, PostComment } from '../../models/post';
 import { AuthService } from '../../services/auth';
 import { PostsService } from '../../services/posts';
+import { PostHeatAuraDirective } from '../../directives/post-heat-aura.directive';
+import { SmartComposerDirective } from '../../directives/smart-composer.directive';
+import { ContentMoodPipe } from '../../pipes/content-mood.pipe';
+import { PostHeatLabelPipe } from '../../pipes/post-heat-label.pipe';
 
 @Component({
   selector: 'app-post-detail',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [
+  ReactiveFormsModule,
+  RouterLink,
+  PostHeatAuraDirective,
+  SmartComposerDirective,
+  PostHeatLabelPipe,
+  ContentMoodPipe],
   templateUrl: './post-detail.html',
   styleUrl: './post-detail.scss',
 })
 export class PostDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly postsService = inject(PostsService);
   private readonly authService = inject(AuthService);
@@ -30,13 +40,17 @@ export class PostDetail implements OnInit {
   commentsLimit = 5;
   commentsTotal = 0;
 
+  isLoading = true;
   isLoadingPost = false;
   isLoadingComments = false;
   isAddingComment = false;
   editingCommentId: string | null = null;
+  isProcessingPost = false;
+  showDeletePostModal = false;
 
   pageError = '';
   commentError = '';
+  deletePostError = '';
 
   commentForm = this.fb.group({
     text: [
@@ -260,5 +274,61 @@ export class PostDetail implements OnInit {
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
+  }
+
+  canDeletePost(): boolean 
+  {
+    const currentUser = this.currentUser();
+    const post = this.post;
+
+    if (!currentUser || !post) {
+      return false;
+    }
+
+    const isOwner = currentUser.id === post.authorId;
+    const isAdmin = currentUser.perfil === 'administrador';
+
+    return isOwner || isAdmin;
+  }
+
+  deletePost(): void 
+  {
+    this.deletePostError = '';
+    this.showDeletePostModal = true;
+  }
+
+  closeDeletePostModal(): void 
+  {
+    if (this.isProcessingPost) {
+      return;
+    }
+
+    this.showDeletePostModal = false;
+    this.deletePostError = '';
+  }
+
+  confirmDeletePost(): void 
+  {
+    const post = this.post;
+
+    if (!post) {
+      return;
+    }
+
+    this.isProcessingPost = true;
+    this.deletePostError = '';
+
+    this.postsService.deletePost(post.id).subscribe({
+      next: () => {
+        this.showDeletePostModal = false;
+        this.router.navigateByUrl('/publicaciones');
+      },
+      error: (error: Error) => {
+        this.deletePostError =
+          error.message || 'No se pudo dar de baja la publicación.';
+
+        this.isProcessingPost = false;
+      },
+    });
   }
 }

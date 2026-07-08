@@ -1,0 +1,232 @@
+<main class="page dashboard-statistics-page">
+  <section class="page-container statistics-layout">
+    <header class="statistics-hero glass-card">
+      <div>
+        <span class="section-eyebrow">Dashboard administrador</span>
+        <h1>Estadísticas</h1>
+        <p>
+          Visualización de publicaciones y comentarios dentro de un lapso de
+          tiempo elegido por el administrador.
+        </p>
+      </div>
+
+      <div class="hero-badge">
+        Sprint 4
+      </div>
+    </header>
+
+    <section class="glass-card filters-card">
+      <div>
+        <span class="section-eyebrow">Filtro temporal</span>
+        <h2>Elegir lapso de tiempo</h2>
+      </div>
+
+      <form
+        class="filters-form"
+        [formGroup]="rangeForm"
+        (ngSubmit)="loadStatistics()"
+      >
+        <label>
+          Desde
+          <input
+            type="date"
+            formControlName="from"
+          >
+        </label>
+
+        <label>
+          Hasta
+          <input
+            type="date"
+            formControlName="to"
+          >
+        </label>
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="isLoading"
+        >
+          {{ isLoading ? 'Cargando...' : 'Actualizar estadísticas' }}
+        </button>
+      </form>
+    </section>
+
+    @if (pageError) {
+      <div class="form-alert error-alert">
+        {{ pageError }}
+      </div>
+    }
+
+    <section class="summary-grid">
+      <article class="summary-card glass-card">
+        <span>Publicaciones</span>
+        <strong>{{ totalPublicaciones }}</strong>
+        <small>en el lapso seleccionado</small>
+      </article>
+
+      <article class="summary-card glass-card">
+        <span>Comentarios por día</span>
+        <strong>{{ totalComentariosPorDia }}</strong>
+        <small>comentarios realizados</small>
+      </article>
+
+      <article class="summary-card glass-card">
+        <span>Comentarios por publicación</span>
+        <strong>{{ totalComentariosPorPost }}</strong>
+        <small>comentarios analizados</small>
+      </article>
+    </section>
+
+    @if (isLoading) {
+      <article class="glass-card state-card">
+        <h2>Cargando estadísticas...</h2>
+        <p>Estamos consultando los datos desde MongoDB.</p>
+      </article>
+    } @else {
+      <section class="charts-grid">
+        <article class="chart-card glass-card">
+          <div class="chart-header">
+            <div>
+              <span class="section-eyebrow">Gráfico de barras</span>
+              <h2>Publicaciones por usuario</h2>
+            </div>
+
+            <strong>{{ totalPublicaciones }} total</strong>
+          </div>
+
+          @if (postsByUser.length === 0) {
+            <div class="empty-chart">
+              No hay publicaciones en el lapso seleccionado.
+            </div>
+          } @else {
+            <div class="bar-chart">
+              @for (item of postsByUser; track item.userId) {
+                <div class="bar-item">
+                  <div class="bar-value">
+                    {{ item.totalPublicaciones }}
+                  </div>
+
+                  <div
+                    class="bar"
+                    [style.height.px]="getPostBarHeight(item.totalPublicaciones)"
+                  ></div>
+
+                  <span>@{{ item.nombreUsuario }}</span>
+                </div>
+              }
+            </div>
+          }
+        </article>
+
+        <article class="chart-card glass-card">
+          <div class="chart-header">
+            <div>
+              <span class="section-eyebrow">Gráfico de líneas</span>
+              <h2>Comentarios por día</h2>
+            </div>
+
+            <strong>{{ totalComentariosPorDia }} total</strong>
+          </div>
+
+          @if (commentsByDay.length === 0) {
+            <div class="empty-chart">
+              No hay comentarios en el lapso seleccionado.
+            </div>
+          } @else {
+            <div class="line-chart-wrapper">
+              <svg
+                class="line-chart"
+                [attr.viewBox]="'0 0 ' + chartWidth + ' ' + chartHeight"
+                preserveAspectRatio="none"
+              >
+                <line
+                  [attr.x1]="chartPadding"
+                  [attr.y1]="chartHeight - chartPadding"
+                  [attr.x2]="chartWidth - chartPadding"
+                  [attr.y2]="chartHeight - chartPadding"
+                ></line>
+
+                <line
+                  [attr.x1]="chartPadding"
+                  [attr.y1]="chartPadding"
+                  [attr.x2]="chartPadding"
+                  [attr.y2]="chartHeight - chartPadding"
+                ></line>
+
+                <polyline
+                  [attr.points]="commentsLinePoints"
+                ></polyline>
+
+                @for (item of commentsByDay; track item.date; let index = $index) {
+                  <circle
+                    [attr.cx]="getLineX(index)"
+                    [attr.cy]="getLineY(item.totalComentarios)"
+                    r="6"
+                  ></circle>
+                }
+              </svg>
+
+              <div class="line-labels">
+                @for (item of commentsByDay; track item.date) {
+                  <span>
+                    {{ formatShortDate(item.date) }}
+                    <b>{{ item.totalComentarios }}</b>
+                  </span>
+                }
+              </div>
+            </div>
+          }
+        </article>
+
+        <article class="chart-card glass-card">
+          <div class="chart-header">
+            <div>
+              <span class="section-eyebrow">Gráfico de torta</span>
+              <h2>Comentarios por publicación</h2>
+            </div>
+
+            <strong>{{ totalComentariosPorPost }} total</strong>
+          </div>
+
+          @if (commentsByPost.length === 0) {
+            <div class="empty-chart">
+              No hay comentarios en publicaciones dentro del lapso seleccionado.
+            </div>
+          } @else {
+            <div class="pie-layout">
+              <div
+                class="pie-chart"
+                [style.background]="commentsByPostPieGradient"
+              >
+                <div class="pie-center">
+                  <strong>{{ totalComentariosPorPost }}</strong>
+                  <span>comentarios</span>
+                </div>
+              </div>
+
+              <div class="pie-legend">
+                @for (item of commentsByPost; track item.postId; let index = $index) {
+                  <div class="pie-legend-item">
+                    <span
+                      class="legend-color"
+                      [style.background]="getPieLegendColor(index)"
+                    ></span>
+
+                    <div>
+                      <strong>{{ item.title }}</strong>
+                      <small>
+                        @{{ item.authorNombreUsuario }} ·
+                        {{ item.totalComentarios }} comentarios
+                      </small>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </article>
+      </section>
+    }
+  </section>
+</main>

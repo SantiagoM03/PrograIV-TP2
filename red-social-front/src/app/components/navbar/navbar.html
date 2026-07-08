@@ -20,6 +20,16 @@
         <span>Mi perfil</span>
       </a>
 
+      @if (isAdmin) {
+        <a routerLink="/dashboard/usuarios" routerLinkActive="active">
+          <span>Dashboard usuarios</span>
+        </a>
+
+        <a routerLink="/dashboard/estadisticas" routerLinkActive="active">
+          <span>Estadísticas</span>
+        </a>
+      }
+
       <span class="nav-user">
         {{ currentUser()?.nombreUsuario }}
       </span>

@@ -1,0 +1,326 @@
+<main class="page dashboard-users-page">
+  <section class="page-container dashboard-layout">
+    <header class="dashboard-hero glass-card">
+      <div>
+        <span class="section-eyebrow">Dashboard administrador</span>
+        <h1>Gestión de usuarios</h1>
+        <p>
+          Desde esta pantalla el administrador puede listar usuarios, crear
+          usuarios nuevos y realizar altas o bajas lógicas.
+        </p>
+      </div>
+
+      <div class="hero-badge">
+        Sprint 4
+      </div>
+    </header>
+
+    @if (successMessage) {
+      <div class="form-alert success-alert">
+        {{ successMessage }}
+      </div>
+    }
+
+    @if (pageError) {
+      <div class="form-alert error-alert">
+        {{ pageError }}
+      </div>
+    }
+
+    <section class="dashboard-grid">
+      <article class="glass-card create-user-card">
+        <span class="section-eyebrow">Alta de usuario</span>
+        <h2>Crear nuevo usuario</h2>
+
+        <form
+          class="create-user-form"
+          [formGroup]="userForm"
+          (ngSubmit)="createUser()"
+        >
+          <div class="form-row">
+            <label>
+              Nombre
+              <input
+                type="text"
+                formControlName="nombre"
+                placeholder="Ej: Valen"
+              >
+            </label>
+
+            <label>
+              Apellido
+              <input
+                type="text"
+                formControlName="apellido"
+                placeholder="Ej: Suetta"
+              >
+            </label>
+          </div>
+
+          @if (nombre?.touched && nombre?.invalid) {
+            <small class="error">El nombre es obligatorio.</small>
+          }
+
+          @if (apellido?.touched && apellido?.invalid) {
+            <small class="error">El apellido es obligatorio.</small>
+          }
+
+          <label>
+            Correo
+            <input
+              type="email"
+              formControlName="correo"
+              placeholder="correo@test.com"
+            >
+          </label>
+
+          @if (correo?.touched && correo?.invalid) {
+            <small class="error">Ingresá un correo válido.</small>
+          }
+
+          <label>
+            Nombre de usuario
+            <input
+              type="text"
+              formControlName="nombreUsuario"
+              placeholder="usuario.test"
+            >
+          </label>
+
+          @if (nombreUsuario?.touched && nombreUsuario?.invalid) {
+            <small class="error">El nombre de usuario es obligatorio.</small>
+          }
+
+          <div class="form-row">
+            <label>
+              Contraseña
+              <input
+                type="password"
+                formControlName="password"
+                placeholder="Mínimo 6 caracteres"
+              >
+            </label>
+
+            <label>
+              Repetir contraseña
+              <input
+                type="password"
+                formControlName="repetirPassword"
+                placeholder="Repetir contraseña"
+              >
+            </label>
+          </div>
+
+          @if (password?.touched && password?.invalid) {
+            <small class="error">La contraseña debe tener al menos 6 caracteres.</small>
+          }
+
+          @if (repetirPassword?.touched && repetirPassword?.invalid) {
+            <small class="error">Repetí la contraseña.</small>
+          }
+
+          <label>
+            Fecha de nacimiento
+            <input
+              type="date"
+              formControlName="fechaNacimiento"
+            >
+          </label>
+
+          @if (fechaNacimiento?.touched && fechaNacimiento?.invalid) {
+            <small class="error">La fecha de nacimiento es obligatoria.</small>
+          }
+
+          <label>
+            Descripción breve
+            <textarea
+              appSmartComposer
+              [smartComposerIdealMin]="25"
+              [smartComposerIdealMax]="160"
+              formControlName="descripcionBreve"
+              placeholder="Descripción breve del usuario..."
+            ></textarea>
+          </label>
+
+          @if (descripcionBreve?.touched && descripcionBreve?.invalid) {
+            <small class="error">La descripción es obligatoria.</small>
+          }
+
+          <div class="role-selector">
+            <span>Perfil del nuevo usuario</span>
+
+            <label>
+              <input
+                type="radio"
+                formControlName="perfil"
+                value="usuario"
+              >
+              Usuario
+            </label>
+
+            <label>
+              <input
+                type="radio"
+                formControlName="perfil"
+                value="administrador"
+              >
+              Administrador
+            </label>
+          </div>
+
+          <label class="file-field">
+            Foto de perfil
+            <input
+              type="file"
+              accept="image/*"
+              (change)="onImageSelected($event)"
+            >
+          </label>
+
+          @if (selectedImagePreview) {
+            <div class="image-preview">
+              <img
+                [src]="selectedImagePreview"
+                alt="Vista previa de la imagen seleccionada"
+              >
+              <span>Vista previa</span>
+            </div>
+          }
+
+          @if (createError) {
+            <div class="form-alert error-alert">
+              {{ createError }}
+            </div>
+          }
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="isCreatingUser"
+          >
+            {{ isCreatingUser ? 'Creando usuario...' : 'Crear usuario' }}
+          </button>
+        </form>
+      </article>
+
+      <article class="glass-card users-list-card">
+        <div class="users-list-header">
+          <div>
+            <span class="section-eyebrow">Listado</span>
+            <h2>Usuarios registrados</h2>
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="loadUsers()"
+            [disabled]="isLoadingUsers"
+          >
+            Actualizar
+          </button>
+        </div>
+
+        @if (isLoadingUsers) {
+          <div class="state-box">
+            Cargando usuarios desde MongoDB...
+          </div>
+        } @else {
+          @if (users.length === 0) {
+            <div class="state-box">
+              Todavía no hay usuarios registrados.
+            </div>
+          } @else {
+            <div class="users-table-wrapper">
+              <table class="users-table">
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Correo</th>
+                    <th>Perfil</th>
+                    <th>Estado</th>
+                    <th>Fecha nacimiento</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  @for (user of users; track user.id) {
+                    <tr>
+                      <td>
+                        <div class="table-user">
+                          <img
+                            [src]="user.imagenPerfilUrl"
+                            [alt]="'Foto de ' + user.nombreUsuario"
+                          >
+
+                          <div>
+                            <strong>{{ user.nombre }} {{ user.apellido }}</strong>
+                            <span>@{{ user.nombreUsuario }}</span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td>{{ user.correo }}</td>
+
+                      <td>
+                        <span
+                          class="role-pill"
+                          [class.admin]="user.perfil === 'administrador'"
+                        >
+                          {{ user | userAccessInsight }}
+                        </span>
+                      </td>
+
+                      <td>
+                        <span
+                          class="status-pill"
+                          [class.disabled]="!user.habilitado"
+                        >
+                          {{ user.habilitado ? 'Habilitado' : 'Deshabilitado' }}
+                        </span>
+                      </td>
+
+                      <td>{{ formatDate(user.fechaNacimiento) }}</td>
+
+                      <td>
+                        @if (user.habilitado) {
+                          <button
+                            type="button"
+                            class="table-action danger"
+                            [disabled]="processingUserId === user.id"
+                            [appHoldToConfirm]="1100"
+                            (appHoldToConfirmComplete)="disableUser(user)"
+                          >
+                            {{
+                              processingUserId === user.id
+                                ? 'Procesando...'
+                                : 'Mantener para deshabilitar'
+                            }}
+                          </button>
+                        } @else {
+                            <button
+                              type="button"
+                              class="table-action success"
+                              [disabled]="processingUserId === user.id"
+                              [appHoldToConfirm]="800"
+                              (appHoldToConfirmComplete)="enableUser(user)"
+                            >
+                              {{
+                                processingUserId === user.id
+                                  ? 'Procesando...'
+                                  : 'Mantener para habilitar'
+                              }}
+                            </button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        }
+      </article>
+    </section>
+  </section>
+</main>

@@ -24,6 +24,15 @@ export class Navbar {
   */
   isLoggedIn = this.authService.isLoggedIn;
 
+  /*
+    Sprint 4:
+    Si el usuario logueado tiene perfil administrador,
+    mostramos los accesos al dashboard.
+  */
+  get isAdmin(): boolean {
+    return this.currentUser()?.perfil === 'administrador';
+  }
+
   logout(): void {
     this.authService.logout().subscribe({
       next: () => {

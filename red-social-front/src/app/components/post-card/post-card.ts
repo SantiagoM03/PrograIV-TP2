@@ -1,12 +1,18 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-
 import { Post } from '../../models/post';
 import { User } from '../../models/user';
+import { PostHeatAuraDirective } from '../../directives/post-heat-aura.directive';
+import { ContentMoodPipe } from '../../pipes/content-mood.pipe';
+import { PostHeatLabelPipe } from '../../pipes/post-heat-label.pipe';
 
 @Component({
   selector: 'app-post-card',
-  imports: [RouterLink],
+  imports: [
+  RouterLink,
+  PostHeatAuraDirective,
+  PostHeatLabelPipe,
+  ContentMoodPipe],
   templateUrl: './post-card.html',
   styleUrl: './post-card.scss',
 })

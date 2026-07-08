@@ -17,7 +17,7 @@
         </article>
       } @else {
         @if (post; as postData) {
-          <article class="post-detail-card glass-card">
+          <article  class="post-detail-card glass-card" [appPostHeatAura]="postData">
             <header class="detail-header">
               <div class="author">
                 <img
@@ -34,6 +34,23 @@
                     @{{ postData.authorNombreUsuario }} · {{ formatDate(postData.createdAt) }}
                   </span>
                 </div>
+              </div>
+
+              <div class="detail-header-actions">
+                <span class="post-heat-badge">
+                  {{ postData | postHeatLabel }}
+                </span>
+
+                @if (canDeletePost()) {
+                  <button
+                    type="button"
+                    class="btn btn-secondary detail-delete-button"
+                    [disabled]="isProcessingPost"
+                    (click)="deletePost()"
+                  >
+                    {{ isProcessingPost ? 'Dando de baja...' : 'Dar de baja publicación' }}
+                  </button>
+                }
               </div>
             </header>
 
@@ -55,7 +72,59 @@
               <span>♥ {{ postData.likesCount }} me gusta</span>
               <span>💬 {{ postData.commentsCount }} comentarios</span>
             </footer>
-          </article>
+                    </article>
+
+          @if (showDeletePostModal) {
+            <div class="delete-modal-backdrop">
+              <article class="delete-modal glass-card">
+                <div class="delete-modal-icon">
+                  !
+                </div>
+
+                <span class="section-eyebrow">Confirmar baja</span>
+
+                <h2>¿Dar de baja esta publicación?</h2>
+
+                <p>
+                  La publicación dejará de estar disponible en el feed y tampoco
+                  se podrán ver sus comentarios.
+                </p>
+
+                @if (postData) {
+                  <div class="delete-post-preview">
+                    <strong>{{ postData.title }}</strong>
+                    <span>Publicada por @{{ postData.authorNombreUsuario }}</span>
+                  </div>
+                }
+
+                @if (deletePostError) {
+                  <div class="form-alert error-alert">
+                    {{ deletePostError }}
+                  </div>
+                }
+
+                <div class="delete-modal-actions">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    [disabled]="isProcessingPost"
+                    (click)="closeDeletePostModal()"
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn btn-danger confirm-delete-button"
+                    [disabled]="isProcessingPost"
+                    (click)="confirmDeletePost()"
+                  >
+                    {{ isProcessingPost ? 'Dando de baja...' : 'Sí, dar de baja' }}
+                  </button>
+                </div>
+              </article>
+            </div>
+          }
 
           <section class="comments-section glass-card">
             <div class="comments-header">
@@ -74,6 +143,9 @@
                 (ngSubmit)="addComment()"
               >
                 <textarea
+                  appSmartComposer
+                  [smartComposerIdealMin]="20"
+                  [smartComposerIdealMax]="280"
                   formControlName="text"
                   placeholder="Escribí un comentario..."
                 ></textarea>
@@ -120,6 +192,10 @@
                         <strong>@{{ comment.userNombreUsuario }}</strong>
                         <span>{{ formatDate(comment.createdAt) }}</span>
                       </div>
+                      
+                      <span class="comment-mood">
+                        {{ comment.text | contentMood }}
+                      </span>
 
                       @if (comment.edited) {
                         <em>Editado</em>
@@ -132,7 +208,12 @@
                         [formGroup]="editCommentForm"
                         (ngSubmit)="saveEditedComment(comment)"
                       >
-                        <textarea formControlName="text"></textarea>
+                        <textarea
+                          appSmartComposer
+                          [smartComposerIdealMin]="20"
+                          [smartComposerIdealMax]="280"
+                          formControlName="text"
+                        ></textarea>
 
                         @if (editText?.touched && editText?.hasError('required')) {
                           <small class="error">El comentario no puede quedar vacío.</small>

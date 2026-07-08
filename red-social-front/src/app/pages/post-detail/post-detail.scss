@@ -242,6 +242,144 @@
   border: 1px solid rgba(239, 68, 68, 0.35);
 }
 
+.detail-delete-button {
+  border-color: rgba(248, 113, 113, 0.45);
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.25);
+}
+
+.detail-delete-button:hover:not(:disabled) {
+  background: rgba(185, 28, 28, 0.4);
+  color: #ffffff;
+}
+
+.delete-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(16px);
+}
+
+.delete-modal {
+  width: min(520px, 100%);
+  padding: 30px;
+  display: grid;
+  gap: 14px;
+  text-align: center;
+  animation: modalEnter 0.18s ease-out;
+}
+
+.delete-modal-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ef4444, #991b1b);
+  box-shadow: 0 18px 40px rgba(239, 68, 68, 0.28);
+}
+
+.delete-modal h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 30px;
+  letter-spacing: -0.8px;
+}
+
+.delete-modal p {
+  margin: 0;
+  color: #cbd5e1;
+  line-height: 1.7;
+  font-weight: 700;
+}
+
+.delete-post-preview {
+  padding: 14px 16px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.7);
+  display: grid;
+  gap: 4px;
+}
+
+.delete-post-preview strong {
+  color: #ffffff;
+}
+
+.delete-post-preview span {
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.delete-modal-actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.confirm-delete-button {
+  background: linear-gradient(135deg, #ef4444, #991b1b);
+  border-color: rgba(248, 113, 113, 0.45);
+  color: #ffffff;
+}
+
+.confirm-delete-button:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.detail-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.post-heat-badge {
+  padding: 9px 12px;
+  border-radius: 999px;
+  color: #fde68a;
+  background: rgba(180, 83, 9, 0.18);
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.comment-mood {
+  display: inline-flex;
+  margin-right: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #bfdbfe;
+  background: rgba(37, 99, 235, 0.16);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (max-width: 760px) {
   .post-detail-card,
   .comments-section {

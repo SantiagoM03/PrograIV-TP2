@@ -21,6 +21,14 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/register/register').then((m) => m.Register),
   },
   {
+    path: 'perfiles/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/public-profile/public-profile').then(
+        (m) => m.PublicProfile,
+      ),
+  },
+  {
     path: 'publicaciones/:id',
     loadComponent: () =>
       import('./pages/post-detail/post-detail').then((m) => m.PostDetail),

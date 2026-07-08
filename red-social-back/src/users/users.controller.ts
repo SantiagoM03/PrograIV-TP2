@@ -39,7 +39,7 @@ interface UploadedImageFile {
 }
 
 /*
-  Controller de usuarios para administración.
+  Acá manejo el controller de usuarios para administración.
 
   Sprint 4:
   Solo usuarios administradores pueden:
@@ -56,8 +56,8 @@ export class UsersController {
   /*
     GET /api/users
 
-    Listado de usuarios.
-    Solo disponible para administradores.
+    Acá devuelvo el listado de usuarios.
+    Lo dejo solo para administradores.
   */
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -72,7 +72,7 @@ export class UsersController {
   /*
     POST /api/users
 
-    Alta de usuario creada por administrador.
+    Acá creo un usuario desde administración.
 
     Recibe los mismos datos que el registro:
     - nombre
@@ -170,9 +170,9 @@ export class UsersController {
   /*
     DELETE /api/users/:id
 
-    Baja lógica:
-    deshabilita el usuario.
-    Ese usuario no podrá iniciar sesión.
+    Acá hago baja lógica:
+    deshabilito al usuario.
+    Desde ese momento no puede iniciar sesión.
   */
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
@@ -192,8 +192,8 @@ export class UsersController {
   /*
     POST /api/users/:id/habilitar
 
-    Alta lógica:
-    rehabilita un usuario previamente deshabilitado.
+    Acá hago alta lógica:
+    rehabilito un usuario previamente deshabilitado.
   */
   @Post(':id/habilitar')
   @HttpCode(HttpStatus.OK)
@@ -214,6 +214,7 @@ export class UsersController {
     imageFile: UploadedImageFile,
     baseUrl: string,
   ): Promise<string> {
+    // Acá guardo la imagen en disco y devuelvo la URL pública.
     const uploadFolder = join(process.cwd(), 'uploads', 'users');
 
     await mkdir(uploadFolder, { recursive: true });

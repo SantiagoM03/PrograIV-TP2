@@ -25,6 +25,7 @@ import { Post, PostComment, PostDocument } from './schemas/post.schema';
 import { CreateCommentDto } from '../auth/dto/create-comment.dto';
 import { ListCommentsQueryDto } from '../auth/dto/list-comments-query.dto';
 import { UpdateCommentDto } from '../auth/dto/update-comment.dto';
+import { AnalyticsService } from '../analytics/analytics.service';
 
 
 export interface UploadedPostImage {
@@ -87,13 +88,14 @@ export class PostsService
     @InjectModel(Post.name)
     private readonly postModel: Model<PostDocument>,
     private readonly usersService: UsersService,
+    private readonly analyticsService: AnalyticsService,
   ) {}
 
     /*
-    Obtiene una publicación específica.
+    Acá obtengo una publicación específica.
 
     Sprint 3:
-    Se usa para mostrar la página grande de una publicación
+    Lo uso para mostrar la página grande de una publicación
     junto con sus comentarios.
   */
   async getPostById(postId: string): Promise<PostResponse> {
@@ -103,7 +105,7 @@ export class PostsService
   }
 
   /*
-    Alta de publicación.
+    Acá doy de alta una publicación.
 
     La publicación queda relacionada al usuario autenticado.
     La imagen es opcional.
@@ -149,7 +151,7 @@ export class PostsService
     } catch (error) {
       /*
         Si MongoDB falla después de guardar la imagen,
-        borramos la imagen para no dejar archivos huérfanos.
+        borro la imagen para no dejar archivos huérfanos.
       */
       if (savedImage) {
         await this.deleteFileIfExists(savedImage.filePath);
@@ -160,7 +162,7 @@ export class PostsService
   }
 
   /*
-    Listado de publicaciones.
+    Acá devuelvo el listado de publicaciones.
 
     Permite:
     - orderBy=fecha
@@ -180,7 +182,7 @@ export class PostsService
     const offset = query.offset ?? 0;
 
     /*
-      Limit máximo 20 para evitar traer demasiados documentos juntos.
+      Acá limito a 20 para evitar traer demasiados documentos juntos.
     */
     const limit = Math.min(query.limit ?? 5, 20);
 
@@ -224,7 +226,7 @@ export class PostsService
   }
 
   /*
-    Baja lógica de una publicación.
+    Acá hago baja lógica de una publicación.
 
     Solo puede hacerla:
     - el usuario que creó la publicación;
@@ -253,9 +255,9 @@ export class PostsService
   }
 
   /*
-    Dar me gusta.
+    Acá doy me gusta.
 
-    Un usuario puede dar un solo like por publicación.
+    Mantengo un solo like por usuario en cada publicación.
   */
   async likePost(
     postId: string,
@@ -278,13 +280,26 @@ export class PostsService
 
     const updatedPost = await post.save();
 
+    const user = await this.usersService.findById(currentUser.id);
+
+    if (user) 
+    {
+      await this.analyticsService.recordLikeGiven(
+        this.usersService.toUserResponse(user),
+        {
+          id: String(updatedPost._id),
+          title: updatedPost.title,
+        },
+      );
+    }
+
     return this.toPostResponse(updatedPost);
   }
 
   /*
-    Quitar me gusta.
+    Acá quito me gusta.
 
-    Solo se puede quitar si previamente el usuario había dado like.
+    Solo lo permito si previamente el usuario había dado like.
   */
   async unlikePost(
     postId: string,
@@ -314,10 +329,10 @@ export class PostsService
   }
 
   /*
-  Agrega un comentario a una publicación.
+  Acá agrego un comentario a una publicación.
 
   Sprint 3:
-  Por POST agrega un comentario junto con:
+  Por POST agrego un comentario junto con:
   - usuario que lo realizó;
   - fecha;
   - publicación relacionada.
@@ -354,11 +369,11 @@ export class PostsService
   }
 
   /*
-    Lista comentarios de una publicación.
+    Acá listo comentarios de una publicación.
 
     Sprint 3:
-    - Debe paginar.
-    - Debe ordenar los más recientes primero.
+    - Pagino resultados.
+    - Ordeno los más recientes primero.
   */
   async listComments(
     postId: string,
@@ -396,11 +411,11 @@ export class PostsService
   }
 
   /*
-    Modifica un comentario.
+    Acá modifico un comentario.
 
     Sprint 3:
     El usuario que escribió el comentario puede editarlo.
-    Un comentario editado debe anunciar que fue editado.
+    Y marco cuando quedó editado.
   */
   async updateComment(
     postId: string,
@@ -445,7 +460,7 @@ export class PostsService
 
     /*
     Estadística 1:
-    Cantidad de publicaciones realizadas por cada usuario
+    Acá calculo la cantidad de publicaciones por usuario
     en un lapso de tiempo.
   */
   async getPostsByUserStats(query: StatisticsQueryDto): Promise<
@@ -502,9 +517,9 @@ export class PostsService
 
   /*
     Estadística 2:
-    Cantidad de comentarios realizados en un lapso de tiempo.
+    Acá calculo la cantidad de comentarios en un lapso de tiempo.
 
-    La devolvemos agrupada por día para poder graficarla como línea o barras.
+    La devuelvo agrupada por día para poder graficarla como línea o barras.
   */
   async getCommentsByDayStats(query: StatisticsQueryDto): Promise<
     {
@@ -562,7 +577,7 @@ export class PostsService
 
   /*
     Estadística 3:
-    Cantidad de comentarios en cada publicación
+    Acá calculo la cantidad de comentarios en cada publicación
     en un lapso de tiempo.
   */
   async getCommentsByPostStats(query: StatisticsQueryDto): Promise<
@@ -669,19 +684,19 @@ export class PostsService
       await unlink(filePath);
     } catch {
       /*
-        Si el archivo no existe, no cortamos la ejecución.
+        Si el archivo no existe, no corto la ejecución.
       */
     }
   }
 
   /*
-    Obtiene rango de fechas para estadísticas.
+    Acá obtengo el rango de fechas para estadísticas.
 
     Si no se envía from/to:
     - usa últimos 30 días por defecto.
 
-    Esto permite que el frontend siempre pueda pedir estadísticas,
-    pero también elegir un lapso concreto.
+    Así permito que el frontend siempre pueda pedir estadísticas,
+    y también elegir un lapso concreto.
   */
   private getDateRange(query: StatisticsQueryDto): {
     fromDate: Date;
@@ -696,7 +711,7 @@ export class PostsService
     const toDate = query.to ? new Date(query.to) : now;
 
     /*
-      Ajustamos el final del día para que "to=2026-01-01"
+      Acá ajusto el final del día para que "to=2026-01-01"
       incluya todo ese día.
     */
     toDate.setHours(23, 59, 59, 999);

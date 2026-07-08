@@ -41,23 +41,15 @@ export class PostsService
 
   constructor(private readonly http: HttpClient) {}
 
-  listPosts(params: ListPostsParams): Observable<ListPostsResponse> {
-    let httpParams = new HttpParams();
-
-    if (params.orderBy) {
-      httpParams = httpParams.set('orderBy', params.orderBy);
-    }
+  listPosts(params: ListPostsParams): Observable<ListPostsResponse> 
+  {
+    let httpParams = new HttpParams()
+      .set('orderBy', params.orderBy ?? 'fecha')
+      .set('offset', String(params.offset ?? 0))
+      .set('limit', String(params.limit ?? 5));
 
     if (params.userId) {
       httpParams = httpParams.set('userId', params.userId);
-    }
-
-    if (params.offset !== undefined) {
-      httpParams = httpParams.set('offset', params.offset);
-    }
-
-    if (params.limit !== undefined) {
-      httpParams = httpParams.set('limit', params.limit);
     }
 
     return this.http
@@ -65,7 +57,9 @@ export class PostsService
         params: httpParams,
         withCredentials: true,
       })
-      .pipe(catchError((error) => this.handleError(error)));
+      .pipe(
+        catchError((error) => this.handleError(error)),
+      );
   }
 
   getPostById(postId: string): Observable<Post> 

@@ -2,9 +2,9 @@
 import { IsDateString, IsOptional } from 'class-validator';
 
 /*
-  Query para estadísticas.
+  Acá defino la query para estadísticas.
 
-  Permite elegir un lapso de tiempo:
+  Me permite elegir un lapso de tiempo:
   - from: fecha inicial
   - to: fecha final
 

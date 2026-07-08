@@ -40,7 +40,7 @@ export class RegisterDto
   @IsString({ message: 'La contraseña debe ser un texto.' })
   @IsNotEmpty({ message: 'La contraseña es obligatoria.' })
   @Matches(/^(?=.*[A-Z])(?=.*\d).{8,}$/, {message:'La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.'})
-  password!: string; //Contraseña sin encriptar (en AuthService la convierto a hash usando bcrypt)
+  password!: string; // Acá recibo la contraseña sin encriptar y en AuthService la convierto a hash con bcrypt.
 
   @IsString({ message: 'La repetición de contraseña debe ser un texto.' })
   @IsNotEmpty({ message: 'Tenés que repetir la contraseña.' })
@@ -56,7 +56,7 @@ export class RegisterDto
   @MaxLength(180, {message: 'La descripción no puede superar los 180 caracteres.'})
   descripcionBreve!: string;
 
-  @IsOptional() //Lo pongo opcional porque si no llega, el backend va a asignar "usuario" por default
+  @IsOptional() // Acá lo dejo opcional porque, si no llega, el backend asigna "usuario" por default.
   @IsEnum(UserProfile, {message: 'El perfil debe ser usuario o administrador.'})
   perfil?: UserProfile;
 }

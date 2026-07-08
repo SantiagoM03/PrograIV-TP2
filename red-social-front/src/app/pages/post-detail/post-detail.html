@@ -19,7 +19,10 @@
         @if (post; as postData) {
           <article  class="post-detail-card glass-card" [appPostHeatAura]="postData">
             <header class="detail-header">
-              <div class="author">
+              <a
+                class="author author-link"
+                [routerLink]="['/perfiles', postData.authorId]"
+              >
                 <img
                   [src]="postData.authorImagenPerfilUrl"
                   [alt]="'Foto de ' + postData.authorNombreUsuario"
@@ -34,7 +37,7 @@
                     @{{ postData.authorNombreUsuario }} · {{ formatDate(postData.createdAt) }}
                   </span>
                 </div>
-              </div>
+              </a>
 
               <div class="detail-header-actions">
                 <span class="post-heat-badge">

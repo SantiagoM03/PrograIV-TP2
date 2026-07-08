@@ -1,0 +1,144 @@
+<main class="page public-profile-page">
+  <section class="page-container profile-layout">
+    <a routerLink="/publicaciones" class="back-link">
+      ← Volver a publicaciones
+    </a>
+
+    @if (isLoading) {
+      <article class="glass-card state-card">
+        <h1>Cargando perfil...</h1>
+        <p>Estamos trayendo los datos del usuario desde MongoDB.</p>
+      </article>
+    } @else {
+      @if (pageError) {
+        <article class="glass-card state-card error-state">
+          <h1>No pudimos cargar el perfil</h1>
+          <p>{{ pageError }}</p>
+        </article>
+      } @else {
+        @if (profileUser; as user) {
+          <article class="profile-hero glass-card">
+            <div class="profile-cover"></div>
+
+            <div class="profile-main">
+              <img
+                class="profile-avatar"
+                [src]="user.imagenPerfilUrl"
+                [alt]="'Foto de ' + user.nombreUsuario"
+              >
+
+              <div class="profile-copy">
+                <span class="section-eyebrow">
+                  {{ isOwnProfile ? 'Tu perfil público' : 'Perfil de usuario' }}
+                </span>
+
+                <h1>{{ profileFullName }}</h1>
+
+                <p class="username">
+                  @{{ user.nombreUsuario }}
+                </p>
+
+                <p class="description">
+                  {{ user.descripcionBreve }}
+                </p>
+
+                <div class="profile-meta">
+                  <span>{{ user.perfil }}</span>
+                  <span>{{ user.habilitado ? 'Habilitado' : 'Deshabilitado' }}</span>
+                  <span>Nacimiento: {{ formatDate(user.fechaNacimiento) }}</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <section class="profile-posts-section">
+            <div class="section-title glass-card">
+              <div>
+                <span class="section-eyebrow">Últimas publicaciones</span>
+                <h2>Actividad reciente de @{{ user.nombreUsuario }}</h2>
+              </div>
+
+              <strong>{{ latestPosts.length }}/3</strong>
+            </div>
+
+            @if (latestPosts.length === 0) {
+              <article class="glass-card empty-posts">
+                <h2>Sin publicaciones recientes</h2>
+                <p>Este usuario todavía no tiene publicaciones disponibles.</p>
+              </article>
+            } @else {
+              <div class="profile-posts-list">
+                @for (post of latestPosts; track post.id) {
+                  <app-post-card
+                    [post]="post"
+                    [currentUser]="currentUser()"
+                    [isProcessing]="processingPostId === post.id"
+                    (like)="likePost($event)"
+                    (unlike)="unlikePost($event)"
+                    (delete)="openDeletePostModal($event)"
+                  />
+                }
+              </div>
+            }
+          </section>
+
+          @if (showDeletePostModal) {
+            <div class="delete-modal-backdrop">
+              <article class="delete-modal glass-card">
+                <div class="delete-modal-icon">
+                  !
+                </div>
+
+                <span class="section-eyebrow">Confirmar baja</span>
+
+                <h2>¿Dar de baja esta publicación?</h2>
+
+                <p>
+                  La publicación dejará de estar disponible y tampoco se podrán
+                  ver sus comentarios.
+                </p>
+
+                @if (postToDelete) {
+                  <div class="delete-post-preview">
+                    <strong>{{ postToDelete.title }}</strong>
+                    <span>Publicada por @{{ postToDelete.authorNombreUsuario }}</span>
+                  </div>
+                }
+
+                @if (deletePostError) {
+                  <div class="form-alert error-alert">
+                    {{ deletePostError }}
+                  </div>
+                }
+
+                <div class="delete-modal-actions">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    [disabled]="processingPostId !== null"
+                    (click)="closeDeletePostModal()"
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn btn-danger confirm-delete-button"
+                    [disabled]="processingPostId !== null"
+                    (click)="confirmDeletePost()"
+                  >
+                    {{
+                      processingPostId !== null
+                        ? 'Dando de baja...'
+                        : 'Sí, dar de baja'
+                    }}
+                  </button>
+                </div>
+              </article>
+            </div>
+          }
+        }
+      }
+    }
+  </section>
+</main>

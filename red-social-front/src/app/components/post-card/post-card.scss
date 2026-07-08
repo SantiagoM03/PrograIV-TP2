@@ -167,3 +167,18 @@
   font-size: 11px;
   font-weight: 900;
 }
+
+.author-link {
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.author-link:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+.author-link:hover strong {
+  color: #93c5fd;
+}

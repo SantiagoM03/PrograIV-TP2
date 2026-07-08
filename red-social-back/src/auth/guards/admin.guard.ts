@@ -11,11 +11,11 @@ import { UserProfile } from '../../users/schemas/user.schema';
 import { RequestWithAuthUser } from '../interfaces/request-with-auth-user.interface';
 
 /*
-  Guard de administrador.
+  Acá valido permisos de administrador.
 
-  Se usa después de JwtCookieGuard.
+  Lo uso después de JwtCookieGuard.
   JwtCookieGuard valida el token y carga request.user.
-  AdminGuard valida que request.user.perfil sea "administrador".
+  Después verifico que request.user.perfil sea "administrador".
 */
 @Injectable()
 export class AdminGuard implements CanActivate {

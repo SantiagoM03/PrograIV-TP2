@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 
@@ -28,7 +28,19 @@ export class Posts implements OnInit {
   limit = 5;
   total = 0;
 
-  isLoading = false;
+  /*
+    Sprint 5:
+    Reemplazamos paginación tradicional por scroll infinito.
+
+    isLoadingInitial:
+    - carga inicial del feed.
+
+    isLoadingMore:
+    - carga automática cuando el usuario llega cerca del final.
+  */
+  isLoadingInitial = false;
+  isLoadingMore = false;
+
   isCreating = false;
 
   feedError = '';
@@ -39,6 +51,7 @@ export class Posts implements OnInit {
   postImagePreview = '';
 
   processingPostId: string | null = null;
+  private activeFeedRequestId = 0;
 
   createPostForm = this.fb.group({
     title: [
@@ -60,7 +73,25 @@ export class Posts implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadPosts();
+    this.resetFeed();
+  }
+
+  /*
+    Escucha el scroll de la ventana.
+
+    Cuando el usuario está cerca del final de la página,
+    intenta cargar más publicaciones automáticamente.
+  */
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    const scrollPosition = window.innerHeight + window.scrollY;
+    const pageHeight = document.documentElement.scrollHeight;
+
+    const distanceFromBottom = pageHeight - scrollPosition;
+
+    if (distanceFromBottom <= 420) {
+      this.loadMorePosts();
+    }
   }
 
   get title() {
@@ -71,77 +102,142 @@ export class Posts implements OnInit {
     return this.createPostForm.get('description');
   }
 
-  get currentPage(): number {
-    return Math.floor(this.offset / this.limit) + 1;
+  get hasMorePosts(): boolean {
+    return this.posts.length < this.total;
   }
 
-  get totalPages(): number {
-    return Math.max(Math.ceil(this.total / this.limit), 1);
+  get isFeedLoading(): boolean {
+    return this.isLoadingInitial || this.isLoadingMore;
   }
 
-  get canGoPrevious(): boolean {
-    return this.offset > 0;
-  }
+  /*
+    Reinicia el feed completo.
 
-  get canGoNext(): boolean {
-    return this.offset + this.limit < this.total;
-  }
+    Se usa:
+    - al entrar por primera vez;
+    - al cambiar el ordenamiento.
+  */
+  resetFeed(): void {
+    this.activeFeedRequestId++;
 
-  loadPosts(): void {
+    this.posts = [];
+    this.offset = 0;
+    this.total = 0;
     this.feedError = '';
-    this.isLoading = true;
+
+    this.loadInitialPosts(this.activeFeedRequestId);
+  }
+
+  loadInitialPosts(requestId = this.activeFeedRequestId): void {
+    this.feedError = '';
+    this.isLoadingInitial = true;
+
+    const requestedOrder = this.orderBy;
 
     this.postsService
       .listPosts({
-        orderBy: this.orderBy,
-        offset: this.offset,
+        orderBy: requestedOrder,
+        offset: 0,
         limit: this.limit,
       })
       .pipe(
         finalize(() => {
-          this.isLoading = false;
+          if (requestId === this.activeFeedRequestId) {
+            this.isLoadingInitial = false;
+          }
         }),
       )
       .subscribe({
         next: (response) => {
+          if (requestId !== this.activeFeedRequestId) {
+            return;
+          }
+
           this.posts = response.items;
           this.total = response.total;
-          this.offset = response.offset;
+          this.offset = response.items.length;
           this.limit = response.limit;
-          this.orderBy = response.orderBy;
+
+          /*
+            Mantengo el orden pedido desde el botón.
+            No dejo que una respuesta vieja pise el estado visual.
+          */
+          this.orderBy = requestedOrder;
         },
         error: (error: Error) => {
+          if (requestId !== this.activeFeedRequestId) {
+            return;
+          }
+
           this.feedError = error.message;
         },
       });
   }
 
-  changeOrder(orderBy: 'fecha' | 'likes'): void {
-    if (this.orderBy === orderBy) {
+  loadMorePosts(): void {
+    if (
+      this.isLoadingInitial ||
+      this.isLoadingMore ||
+      !this.hasMorePosts
+    ) {
       return;
     }
 
+    this.feedError = '';
+    this.isLoadingMore = true;
+
+    const requestId = this.activeFeedRequestId;
+    const requestedOrder = this.orderBy;
+
+    this.postsService
+      .listPosts({
+        orderBy: requestedOrder,
+        offset: this.offset,
+        limit: this.limit,
+      })
+      .pipe(
+        finalize(() => {
+          if (requestId === this.activeFeedRequestId) {
+            this.isLoadingMore = false;
+          }
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          if (requestId !== this.activeFeedRequestId) {
+            return;
+          }
+
+          const newItems = response.items.filter(
+            (newPost) => !this.posts.some((post) => post.id === newPost.id),
+          );
+
+          this.posts = [...this.posts, ...newItems];
+
+          this.total = response.total;
+          this.limit = response.limit;
+          this.offset = this.posts.length;
+          this.orderBy = requestedOrder;
+        },
+        error: (error: Error) => {
+          if (requestId !== this.activeFeedRequestId) {
+            return;
+          }
+
+          this.feedError = error.message;
+        },
+      });
+  }
+
+  changeOrder(orderBy: 'fecha' | 'likes'): void 
+  {
     this.orderBy = orderBy;
-    this.offset = 0;
-    this.loadPosts();
-  }
+    this.resetFeed();
 
-  goPreviousPage(): void {
-    if (!this.canGoPrevious) {
-      return;
-    }
-
-    this.offset = Math.max(this.offset - this.limit, 0);
-    this.loadPosts();
-  }
-
-  goNextPage(): void {
-    if (!this.canGoNext) {
-      return;
-    }
-
-    this.offset = this.offset + this.limit;
-    this.loadPosts();
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
   }
 
   onPostImageSelected(event: Event): void {
@@ -182,8 +278,7 @@ export class Posts implements OnInit {
     reader.readAsDataURL(file);
   }
 
-  createPost(): void 
-  {
+  createPost(): void {
     this.createError = '';
 
     if (this.createPostForm.invalid) {
@@ -212,17 +307,22 @@ export class Posts implements OnInit {
           this.clearSelectedPostImage();
 
           /*
-            La consigna pide que por defecto el listado esté ordenado por fecha.
-            Como la publicación recién creada es la más nueva, la agrego arriba
-            sin volver a disparar un GET que puede dejar el loader colgado.
+            La publicación nueva se muestra automáticamente arriba.
+            Como es la más reciente, dejamos el orden por fecha.
           */
           this.orderBy = 'fecha';
-          this.offset = 0;
-
-          this.posts = [createdPost, ...this.posts].slice(0, this.limit);
-          this.total = this.total + 1;
-
           this.feedError = '';
+
+          /*
+            Después de crear una publicación, reinicio el feed por fecha.
+            Así no queda mezclado un feed que estaba ordenado por likes.
+          */
+          this.resetFeed();
+
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth',
+          });
         },
         error: (error: Error) => {
           this.createError = error.message;
@@ -283,16 +383,18 @@ export class Posts implements OnInit {
       .subscribe({
         next: () => {
           /*
-            Como el backend hace baja lógica, en el feed simplemente
-            quito la publicación de la lista visible.
+            Baja lógica:
+            quitamos la publicación del feed visible.
           */
           this.posts = this.posts.filter((item) => item.id !== post.id);
           this.total = Math.max(this.total - 1, 0);
+          this.offset = this.posts.length;
 
-          if (this.posts.length === 0 && this.offset > 0) {
-            this.offset = Math.max(this.offset - this.limit, 0);
-            this.loadPosts();
-          }
+          /*
+            Si todavía hay más publicaciones en MongoDB,
+            intentamos traer otra para completar el feed.
+          */
+          this.loadMorePosts();
         },
         error: (error: Error) => {
           this.feedError = error.message;

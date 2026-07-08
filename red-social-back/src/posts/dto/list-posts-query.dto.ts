@@ -10,7 +10,7 @@ import {
 
 export class ListPostsQueryDto {
   /*
-    Ordenamiento:
+    Acá defino el ordenamiento:
     - fecha: últimas publicaciones primero.
     - likes: publicaciones con más me gusta primero.
   */
@@ -21,14 +21,14 @@ export class ListPostsQueryDto {
   orderBy?: 'fecha' | 'likes';
 
   /*
-    Permite filtrar publicaciones de un usuario puntual.
+    Acá permito filtrar publicaciones de un usuario puntual.
   */
   @IsOptional()
   @IsMongoId({ message: 'El userId debe ser un ObjectId válido.' })
   userId?: string;
 
   /*
-    Offset para paginar.
+    Acá recibo el offset para paginar.
   */
   @IsOptional()
   @Type(() => Number)
@@ -37,7 +37,7 @@ export class ListPostsQueryDto {
   offset?: number;
 
   /*
-    Limit para paginar.
+    Acá recibo el limit para paginar.
   */
   @IsOptional()
   @Type(() => Number)

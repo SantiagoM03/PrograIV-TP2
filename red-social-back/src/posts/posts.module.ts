@@ -8,12 +8,18 @@ import { PostsController } from './posts.controller';
 import { PostsService } from './posts.service';
 import { Post, PostSchema } from './schemas/post.schema';
 import { StatisticsController } from './statistics.controller';
+import { AnalyticsModule } from '../analytics/analytics.module';
 
+/*
+  Acá registro el modelo de publicaciones y dejo expuesto PostsService
+  para comentarios, perfiles y estadísticas.
+*/
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]),
     UsersModule,
     AuthModule,
+    AnalyticsModule,
   ],
   controllers: [PostsController, CommentsController, StatisticsController],
   providers: [PostsService],

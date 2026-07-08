@@ -1,6 +1,9 @@
 <article  class="post-card glass-card" [appPostHeatAura]="post">
   <header class="post-header">
-    <div class="author">
+    <a
+      class="author author-link"
+      [routerLink]="['/perfiles', post.authorId]"
+    >
       <img
         [src]="post.authorImagenPerfilUrl"
         [alt]="'Foto de ' + post.authorNombreUsuario"
@@ -10,7 +13,7 @@
         <strong>{{ authorFullName }}</strong>
         <span>@{{ post.authorNombreUsuario }} · {{ formatDate(post.createdAt) }}</span>
       </div>
-    </div>
+    </a>
 
     <span class="post-heat-badge">
       {{ post | postHeatLabel }}

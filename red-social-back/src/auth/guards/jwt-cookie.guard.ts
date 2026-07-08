@@ -16,35 +16,38 @@ import { RequestWithAuthUser } from '../interfaces/request-with-auth-user.interf
 import { UsersService } from '../../users/users.service';
 
 /*
-  Guard de autenticación por cookie.
+  Acá valido autenticación por cookie.
 
-  Lee la cookie:
+  Leo la cookie:
   access_token
 
-  Valida el JWT y guarda el usuario actual en:
+  Valido el JWT y guardo el usuario actual en:
   request.user
 */
 @Injectable()
-export class JwtCookieGuard implements CanActivate {
+export class JwtCookieGuard implements CanActivate 
+{
   constructor(
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
   ) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> 
+  {
     const request = context.switchToHttp().getRequest<RequestWithAuthUser>();
-
     const token = request.cookies?.['access_token'];
 
-    if (!token) {
+    if (!token) 
+    {
       throw new UnauthorizedException('No hay sesión activa.');
     }
 
-    try {
+    try 
+    {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
 
       /*
-        Buscamos el usuario real en MongoDB para confirmar que:
+        Acá busco el usuario real en MongoDB para confirmar que:
         - existe;
         - sigue habilitado.
       */
@@ -59,9 +62,10 @@ export class JwtCookieGuard implements CanActivate {
       }
 
       /*
-        Dejamos disponible el usuario autenticado para los controllers.
+        Acá dejo disponible el usuario autenticado para los controllers.
       */
-      request.user = {
+      request.user = 
+      {
         id: String(user._id),
         correo: user.correo,
         nombreUsuario: user.nombreUsuario,
@@ -69,11 +73,15 @@ export class JwtCookieGuard implements CanActivate {
       };
 
       return true;
-    } catch (error) {
-      if (
-        error instanceof UnauthorizedException ||
-        error instanceof ForbiddenException
-      ) {
+
+    } 
+    catch (error) 
+    {
+      if 
+      (
+        error instanceof UnauthorizedException || error instanceof ForbiddenException
+      ) 
+      {
         throw error;
       }
 

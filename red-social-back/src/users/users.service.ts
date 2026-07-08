@@ -34,16 +34,16 @@ export interface UserResponse
 @Injectable()
 export class UsersService {
 
-  //Para poder hacer findOne, Create, Save, etc. Usar los metodos y propiedades de Mongoose
+  // Acá inyecto el modelo para usar findOne, create, save y el resto de métodos de Mongoose.
   constructor(@InjectModel(User.name) private readonly userModel: Model<UserDocument>) {}
 
   /*
-    Busca un usuario por correo.
+    Acá busco un usuario por correo.
 
-    Lo usamos para validar que no exista otro usuario con el mismo correo
+    Lo uso para validar que no exista otro usuario con el mismo correo
     antes de registrar uno nuevo.
 
-    Normalizamos a minúsculas porque en el schema también guardamos:
+    Normalizo a minúsculas porque en el schema también guardo:
     lowercase: true
   */
   async findByCorreo(correo: string): Promise<UserDocument | null> {
@@ -55,9 +55,9 @@ export class UsersService {
   }
 
   /*
-    Busca un usuario por nombre de usuario.
+    Acá busco un usuario por nombre de usuario.
 
-    Lo usamos para validar que no exista otro usuario con el mismo nombreUsuario
+    Lo uso para validar que no exista otro usuario con el mismo nombreUsuario
     antes de registrar uno nuevo.
   */
   async findByNombreUsuario(
@@ -72,6 +72,7 @@ export class UsersService {
 
   async findById(id: string): Promise<UserDocument | null> 
   {
+    // Si el id no tiene formato ObjectId, corto rápido y devuelvo null.
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
@@ -81,6 +82,7 @@ export class UsersService {
 
   async findAllUsers(): Promise<UserDocument[]> 
   {
+    // Acá devuelvo primero los usuarios más recientes.
     return this.userModel
       .find()
       .sort({ createdAt: -1 })
@@ -89,6 +91,7 @@ export class UsersService {
 
   async setUserEnabled(id: string, habilitado: boolean,): Promise<UserDocument | null> 
   {
+    // Valido formato para no ejecutar una query inválida.
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
@@ -107,23 +110,22 @@ export class UsersService {
   }
 
   /*
-    Busca un usuario por correo o nombre de usuario.
+    Acá busco un usuario por correo o nombre de usuario.
 
-    Este método lo vamos a usar en login.
+    Este método lo uso en login.
 
     Como passwordHash tiene select: false en el schema, normalmente no viene
-    en las consultas. Pero para login necesitamos comparar la contraseña
+    en las consultas. Pero para login necesito comparar la contraseña
     ingresada con el hash guardado.
 
-    Por eso usamos:
+    Por eso uso:
     .select('+passwordHash')
 
     Eso le dice a Mongoose:
-    "en esta consulta puntual, sí necesito traer passwordHash".
+    "en esta consulta puntual sí necesito traer passwordHash".
   */
-  async findByUsuarioOCorreoWithPassword(
-    usuarioOCorreo: string,
-  ): Promise<UserDocument | null> {
+  async findByUsuarioOCorreoWithPassword(usuarioOCorreo: string): Promise<UserDocument | null> 
+  {
     const value = usuarioOCorreo.trim().toLowerCase();
 
     return this.userModel
@@ -138,16 +140,17 @@ export class UsersService {
   }
 
   /*
-    Crea un usuario en MongoDB.
+    Acá creo un usuario en MongoDB.
 
     Este método recibe datos ya preparados:
     - passwordHash ya viene hasheada.
     - fechaNacimiento ya viene convertida a Date.
     - imagenPerfilUrl ya viene generada.
 
-    La responsabilidad de este service es guardar el usuario.
+    Mi responsabilidad en este service es guardar el usuario.
   */
-  async createUser(data: CreateUserData): Promise<UserDocument> {
+  async createUser(data: CreateUserData): Promise<UserDocument> 
+  {
     const user = new this.userModel({
       nombre: data.nombre.trim(),
       apellido: data.apellido.trim(),
@@ -165,13 +168,14 @@ export class UsersService {
   }
 
   /*
-    Convierte un documento de MongoDB en una respuesta segura para el frontend.
+    Acá convierto un documento de MongoDB en una respuesta segura para el frontend.
 
-    Esto evita devolver:
+    Así evito devolver:
     - passwordHash
     - datos internos innecesarios de Mongoose
   */
-  toUserResponse(user: UserDocument): UserResponse {
+  toUserResponse(user: UserDocument): UserResponse 
+  {
     return {
       id: String(user._id),
       nombre: user.nombre,

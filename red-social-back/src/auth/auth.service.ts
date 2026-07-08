@@ -14,11 +14,12 @@ import { mkdir, unlink, writeFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import { extname, join } from 'path';
 import { AuthenticatedUser } from './interfaces/authenticated-user.interface';
+import { AnalyticsService } from '../analytics/analytics.service';
 
 /*
-  Payload del JWT.
+  Acá defino el payload del JWT.
 
-  Esto es la información que guardamos dentro del token.
+  Esta es la información que guardo dentro del token.
 
   El PDF pide que el JWT valide:
   - quién es el usuario;
@@ -39,26 +40,28 @@ export interface JwtPayload
 }
 
 /*
-  Respuesta de autenticación.
+  Acá defino la respuesta de autenticación.
 
-  AuthService va a devolver:
+  Desde AuthService devuelvo:
   - user: datos seguros del usuario, sin passwordHash;
   - accessToken: JWT generado.
 
-  Luego, en AuthController, vamos a poner ese token en una cookie.
+  Después, en AuthController, meto ese token en una cookie.
 */
-export interface AuthResponse {
+export interface AuthResponse 
+{
   user: UserResponse;
   accessToken: string;
 }
 
 /*
-  Archivo de imagen recibido desde AuthController.
+  Acá tipé el archivo de imagen que llega desde AuthController.
 
-  Como usamos memoryStorage, la imagen llega en memoria.
-  AuthService será quien la guarde en uploads/users.
+  Como uso memoryStorage, la imagen llega en memoria.
+  AuthService es quien la guarda en uploads/users.
 */
-export interface UploadedProfileImage {
+export interface UploadedProfileImage 
+{
   originalname: string;
   mimetype: string;
   buffer: Buffer;
@@ -66,48 +69,46 @@ export interface UploadedProfileImage {
 }
 
 @Injectable()
-export class AuthService {
+export class AuthService 
+{
   /*
-    Inyectamos UsersService porque AuthService necesita:
+    Inyecto UsersService porque AuthService necesita:
     - buscar usuarios;
     - validar duplicados;
     - crear usuarios;
     - transformar usuarios a respuestas seguras.
 
-    Inyectamos JwtService porque necesitamos generar JWT.
+    También inyecto JwtService porque necesito generar JWT.
   */
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly analyticsService: AnalyticsService,
   ) {}
 
   /*
-    Registro de usuario.
+    Acá registro un usuario.
 
-    Este método todavía no recibe directamente el archivo.
-    El archivo lo va a manejar el controller con Multer.
+    Este método recibe el archivo tipado, pero la captura la maneja el controller con Multer.
 
-    El controller va a guardar la imagen y luego le va a pasar a este service
-    la URL final de la imagen mediante imagenPerfilUrl.
+    El controller me pasa lo necesario para terminar guardando la imagen
+    y construir la URL final.
 
     Flujo:
-    1. Validar que password y repetirPassword coincidan.
-    2. Validar que el correo no exista.
-    3. Validar que el nombre de usuario no exista.
-    4. Hashear la contraseña con bcrypt.
-    5. Crear el usuario en MongoDB.
-    6. Generar JWT.
-    7. Devolver usuario seguro + token.
+    1. Valido que password y repetirPassword coincidan.
+    2. Valido que el correo no exista.
+    3. Valido que el nombre de usuario no exista.
+    4. Hasheo la contraseña con bcrypt.
+    5. Creo el usuario en MongoDB.
+    6. Genero JWT.
+    7. Devuelvo usuario seguro + token.
   */
-  async register(
-    registerDto: RegisterDto,
-    imageFile: UploadedProfileImage,
-    baseUrl: string,
-  ): Promise<AuthResponse> {
+  async register(registerDto: RegisterDto, imageFile: UploadedProfileImage, baseUrl: string): Promise<AuthResponse> 
+  {
     /*
-      Primero validamos todo lo que pueda fallar ANTES de guardar la imagen.
+      Primero valido todo lo que pueda fallar ANTES de guardar la imagen.
 
-      Así evitamos que queden archivos huérfanos en uploads/users
+      Así evito que queden archivos huérfanos en uploads/users
       cuando el registro falla por:
       - contraseñas distintas;
       - correo duplicado;
@@ -136,20 +137,21 @@ export class AuthService {
     }
 
     /*
-      Si llegamos hasta acá, los datos principales ya son válidos.
-      Ahora sí hasheamos la contraseña.
+      Si llego hasta acá, los datos principales ya son válidos.
+      Ahora sí hasheo la contraseña.
     */
     const passwordHash = await hash(registerDto.password, 10);
 
     /*
-      Guardamos la imagen recién ahora.
+      Recién ahora guardo la imagen.
       Si antes hubo un error, nunca se guardó.
     */
     const savedImage = await this.saveProfileImage(imageFile, baseUrl);
 
-    try {
+    try 
+    {
       /*
-        Creamos el usuario con la URL de la imagen ya guardada.
+        Acá creo el usuario con la URL de la imagen ya guardada.
       */
       const createdUser = await this.usersService.createUser({
         nombre: registerDto.nombre,
@@ -164,50 +166,47 @@ export class AuthService {
       });
 
       const userResponse = this.usersService.toUserResponse(createdUser);
-
       const accessToken = await this.generateAccessToken(userResponse);
 
       return {
         user: userResponse,
         accessToken,
       };
-    } catch (error) {
+    } 
+    catch (error) {
       /*
         Si MongoDB falla después de haber guardado la imagen,
-        borramos la imagen para no dejar basura.
+        borro la imagen para no dejar basura.
       */
       await this.deleteFileIfExists(savedImage.filePath);
-
       throw error;
     }
   }
 
   /*
-    Login de usuario.
+    Acá hago login de usuario.
 
     El PDF permite iniciar sesión usando:
     - correo;
     - nombre de usuario.
 
     Seguridad:
-    - Si el usuario no existe, devolvemos "Credenciales inválidas".
-    - Si la contraseña no coincide, devolvemos "Credenciales inválidas".
-    - No decimos si falló el usuario o la contraseña.
+    - Si el usuario no existe, devuelvo "Credenciales inválidas".
+    - Si la contraseña no coincide, devuelvo "Credenciales inválidas".
+    - No digo si falló el usuario o la contraseña.
   */
   async login(loginDto: LoginDto): Promise<AuthResponse> {
     /*
-      Buscamos usuario por correo o nombre de usuario.
+      Acá busco usuario por correo o nombre de usuario.
 
-      Este método trae passwordHash porque lo necesitamos para comparar
+      Este método trae passwordHash porque lo necesito para comparar
       la contraseña ingresada.
     */
-    const user = await this.usersService.findByUsuarioOCorreoWithPassword(
-      loginDto.usuarioOCorreo,
-    );
+    const user = await this.usersService.findByUsuarioOCorreoWithPassword(loginDto.usuarioOCorreo);
 
     /*
-      No damos detalles si el usuario no existe.
-      Esto evita filtrar información.
+      No doy detalles si el usuario no existe.
+      Así evito filtrar información.
     */
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas.');
@@ -220,37 +219,40 @@ export class AuthService {
       Este mensaje sí puede ser específico porque el usuario existe
       pero no está autorizado a usar la app.
     */
-    if (!user.habilitado) {
-      throw new ForbiddenException(
-        'Tu usuario se encuentra deshabilitado.',
-      );
+    if (!user.habilitado) 
+    {
+      throw new ForbiddenException('Tu usuario se encuentra deshabilitado.');
     }
 
     /*
-      Comparamos la contraseña plana recibida en login
+      Acá comparo la contraseña plana recibida en login
       contra el hash guardado en MongoDB.
 
       bcrypt.compare devuelve true si coincide.
     */
-    const passwordMatches = await compare(
-      loginDto.password,
-      user.passwordHash,
-    );
+    const passwordMatches = await compare(loginDto.password, user.passwordHash);
 
     /*
-      No damos detalles si la contraseña no coincide.
+      No doy detalles si la contraseña no coincide.
     */
     if (!passwordMatches) {
       throw new UnauthorizedException('Credenciales inválidas.');
     }
 
     /*
-      Armamos la respuesta segura del usuario.
+      Acá armo la respuesta segura del usuario.
     */
     const userResponse = this.usersService.toUserResponse(user);
 
     /*
-      Generamos un JWT nuevo.
+      Sprint 5:
+      Registro cada login exitoso para la estadística:
+      "Cantidad de ingresos por usuario".
+    */
+    await this.analyticsService.recordLogin(userResponse);
+
+    /*
+      Acá genero un JWT nuevo.
     */
     const accessToken = await this.generateAccessToken(userResponse);
 
@@ -261,9 +263,9 @@ export class AuthService {
   }
 
     /*
-    Autorizar sesión.
+    Acá autorizo sesión.
 
-    Se usa en Sprint 3 para validar si la cookie access_token
+    Lo uso en Sprint 3 para validar si la cookie access_token
     sigue siendo válida al iniciar la aplicación.
   */
   async authorizeSession(currentUser: AuthenticatedUser): Promise<UserResponse> {
@@ -281,10 +283,10 @@ export class AuthService {
   }
 
   /*
-    Refrescar sesión.
+    Acá refresco sesión.
 
-    Valida que el token actual siga siendo válido mediante JwtCookieGuard.
-    Si es válido, genera un token nuevo con otros 15 minutos de vencimiento.
+    Valido que el token actual siga siendo válido mediante JwtCookieGuard.
+    Si es válido, genero un token nuevo con otros 15 minutos de vencimiento.
   */
   async refreshSession(currentUser: AuthenticatedUser): Promise<AuthResponse> {
     const user = await this.usersService.findById(currentUser.id);
@@ -308,14 +310,13 @@ export class AuthService {
   }
 
   /*
-    Genera un JWT para el usuario autenticado.
+    Acá genero un JWT para el usuario autenticado.
 
-    El vencimiento del token no se define acá.
-    Se define en AuthModule mediante JWT_EXPIRES_IN=15m.
+    El vencimiento no lo defino acá.
+    Lo defino en AuthModule mediante JWT_EXPIRES_IN=15m.
   */
-  private async generateAccessToken(
-    user: UserResponse,
-  ): Promise<string> {
+  private async generateAccessToken(user: UserResponse): Promise<string> 
+  {
     const payload: JwtPayload = {
       sub: user.id,
       correo: user.correo,
@@ -327,9 +328,9 @@ export class AuthService {
   }
 
   /*
-  Guarda físicamente la imagen de perfil en uploads/users.
+  Acá guardo físicamente la imagen de perfil en uploads/users.
 
-  Devuelve:
+  Devuelvo:
   - filePath: ruta interna para poder borrar el archivo si algo falla.
   - publicUrl: URL pública que se guarda en MongoDB.
 */
@@ -338,7 +339,7 @@ private async saveProfileImage(
   baseUrl: string,
 ): Promise<{ filePath: string; publicUrl: string }> {
   /*
-    Aseguramos que la carpeta exista.
+    Acá me aseguro de que la carpeta exista.
     recursive: true evita error si la carpeta ya existe.
   */
   const uploadFolder = join(process.cwd(), 'uploads', 'users');
@@ -346,7 +347,7 @@ private async saveProfileImage(
   await mkdir(uploadFolder, { recursive: true });
 
   /*
-    Armamos un nombre único para evitar pisar imágenes.
+    Acá armo un nombre único para evitar pisar imágenes.
   */
   const fileExtension = extname(imageFile.originalname);
   const fileName = `${randomUUID()}${fileExtension}`;
@@ -354,12 +355,12 @@ private async saveProfileImage(
   const filePath = join(uploadFolder, fileName);
 
   /*
-    Escribimos el buffer en disco.
+    Acá escribo el buffer en disco.
   */
   await writeFile(filePath, imageFile.buffer);
 
   /*
-    Esta URL es la que se guarda en MongoDB.
+    Esta URL es la que guardo en MongoDB.
 
     En main.ts servimos uploads con:
     app.useStaticAssets(..., { prefix: '/uploads/' })
@@ -373,16 +374,16 @@ private async saveProfileImage(
 }
 
   /*
-    Borra un archivo si existe.
+    Acá borro un archivo si existe.
 
-    Lo usamos como limpieza si ocurre un error después de guardar la imagen.
+    Lo uso como limpieza si ocurre un error después de guardar la imagen.
   */
   private async deleteFileIfExists(filePath: string): Promise<void> {
     try {
       await unlink(filePath);
     } catch {
       /*
-        Si el archivo no existe o ya fue borrado, no cortamos la ejecución.
+        Si el archivo no existe o ya fue borrado, no corto la ejecución.
       */
     }
   }

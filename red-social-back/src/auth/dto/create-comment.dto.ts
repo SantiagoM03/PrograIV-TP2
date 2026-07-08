@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 
+// Acá valido el texto cuando creo un comentario.
 export class CreateCommentDto 
 {
   @IsString({ message: 'El comentario debe ser un texto.' })

@@ -7,9 +7,9 @@ import { User } from '../../users/schemas/user.schema';
 export type PostDocument = HydratedDocument<Post>;
 
 /*
-  Comentario embebido dentro de una publicación.
+  Acá defino el comentario embebido dentro de una publicación.
 
-  Lo dejamos preparado desde ahora porque Sprint 2 pide que
+  Lo dejo preparado desde ahora porque Sprint 2 pide que
   Mi Perfil muestre las últimas 3 publicaciones y sus comentarios.
 */
 @Schema({ _id: true, timestamps: true })
@@ -38,13 +38,13 @@ export const PostCommentSchema = SchemaFactory.createForClass(PostComment);
 @Schema({ collection: 'posts', timestamps: true })
 export class Post {
   /*
-    Usuario creador de la publicación.
+    Acá guardo el usuario creador de la publicación.
   */
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   authorId!: Types.ObjectId;
 
   /*
-    Datos del autor duplicados para mostrar rápido en el feed
+    Acá duplico datos del autor para mostrar rápido en el feed
     sin tener que hacer populate todo el tiempo.
   */
   @Prop({ required: true, trim: true })
@@ -60,7 +60,7 @@ export class Post {
   authorImagenPerfilUrl!: string;
 
   /*
-    Datos propios de la publicación.
+    Acá guardo los datos propios de la publicación.
   */
   @Prop({ required: true, trim: true, minlength: 3, maxlength: 100 })
   title!: string; 
@@ -69,19 +69,19 @@ export class Post {
   description!: string;
 
   /*
-    Imagen opcional de la publicación.
+    Acá defino la imagen opcional de la publicación.
     Si no se sube imagen, queda null.
 
     Como el tipo TypeScript es string | null,
-    Mongoose necesita que le indiquemos explícitamente
+    Mongoose necesita que le indique explícitamente
     que el tipo real en MongoDB es String.
   */
   @Prop({ type: String, default: null })
   imageUrl!: string | null;
 
   /*
-    Likes.
-    Guardamos los IDs de los usuarios que dieron me gusta.
+    Acá guardo los likes.
+    Persisto los IDs de los usuarios que dieron me gusta.
   */
   @Prop({
     type: [{ type: Types.ObjectId, ref: User.name }],
@@ -90,13 +90,13 @@ export class Post {
   likes!: Types.ObjectId[];
 
   /*
-    Campo numérico para poder ordenar fácil por cantidad de likes.
+    Acá mantengo un campo numérico para ordenar fácil por cantidad de likes.
   */
   @Prop({ required: true, default: 0 })
   likesCount!: number;
 
   /*
-    Comentarios embebidos.
+    Acá guardo los comentarios embebidos.
   */
   @Prop({ type: [PostCommentSchema], default: [] })
   comments!: PostComment[];
@@ -105,8 +105,8 @@ export class Post {
   commentsCount!: number;
 
   /*
-    Baja lógica.
-    No borramos físicamente el documento.
+    Acá hago baja lógica.
+    No borro físicamente el documento.
   */
   @Prop({ required: true, default: false })
   isDeleted!: boolean;

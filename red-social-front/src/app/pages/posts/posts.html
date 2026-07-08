@@ -11,7 +11,7 @@
 
           <p class="page-subtitle">
             El feed muestra publicaciones reales desde MongoDB, ordenadas por fecha
-            por defecto, con paginación, likes y baja lógica.
+            por defecto, con scroll infinito, likes y baja lógica.
           </p>
         </div>
 
@@ -163,7 +163,7 @@
         </div>
       }
 
-      @if (isLoading) {
+            @if (isLoadingInitial) {
         <article class="empty-state glass-card">
           <h2>Cargando publicaciones...</h2>
           <p>Estamos trayendo el feed desde MongoDB.</p>
@@ -183,29 +183,23 @@
             }
           </section>
 
-          <section class="pagination glass-card">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              [disabled]="!canGoPrevious"
-              (click)="goPreviousPage()"
-            >
-              Anterior
-            </button>
+          @if (isLoadingMore) {
+            <section class="infinite-state glass-card">
+              <div class="infinite-spinner"></div>
 
-            <span>
-              Página {{ currentPage }} de {{ totalPages }}
-            </span>
+              <div>
+                <strong>Cargando más publicaciones...</strong>
+                <span>Estamos sumando nuevas publicaciones al feed.</span>
+              </div>
+            </section>
+          }
 
-            <button
-              type="button"
-              class="btn btn-secondary"
-              [disabled]="!canGoNext"
-              (click)="goNextPage()"
-            >
-              Siguiente
-            </button>
-          </section>
+          @if (!hasMorePosts && posts.length > 0) {
+            <section class="infinite-state glass-card end-state">
+              <strong>No hay más publicaciones</strong>
+              <span>Ya llegaste al final del feed.</span>
+            </section>
+          }
         } @else {
           <article class="empty-state glass-card">
             <h2>No hay publicaciones todavía</h2>

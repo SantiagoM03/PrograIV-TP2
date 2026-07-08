@@ -184,17 +184,46 @@
   gap: 18px;
 }
 
-.pagination {
+.infinite-state {
   padding: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: 14px;
+  text-align: center;
 }
 
-.pagination span {
+.infinite-state strong {
+  display: block;
   color: #ffffff;
   font-weight: 900;
+}
+
+.infinite-state span {
+  display: block;
+  margin-top: 4px;
+  color: #96a2bd;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.infinite-spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 3px solid rgba(148, 163, 184, 0.22);
+  border-top-color: #06b6d4;
+  animation: infiniteSpin 0.75s linear infinite;
+}
+
+.end-state {
+  flex-direction: column;
+}
+
+@keyframes infiniteSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .empty-state {
@@ -230,7 +259,7 @@
     border-radius: 22px;
   }
 
-  .pagination {
+  .infinite-state {
     flex-direction: column;
   }
 }

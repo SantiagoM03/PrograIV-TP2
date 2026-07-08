@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 
+// Acá valido los datos mínimos para crear una publicación.
 export class CreatePostDto 
 {
   @IsString({ message: 'El título debe ser un texto.' })

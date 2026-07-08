@@ -21,6 +21,37 @@ export interface CommentsByPostStat {
   totalComentarios: number;
 }
 
+/*
+  Sprint 5:
+  Cantidad de ingresos por usuario.
+*/
+export interface LoginsByUserStat {
+  userId: string;
+  nombreUsuario: string;
+  nombreCompleto: string;
+  totalIngresos: number;
+}
+
+/*
+  Sprint 5:
+  Cantidad de visitas a perfiles.
+*/
+export interface ProfileVisitsStat {
+  userId: string;
+  nombreUsuario: string;
+  nombreCompleto: string;
+  totalVisitas: number;
+}
+
+/*
+  Sprint 5:
+  Cantidad de me gusta otorgados por día.
+*/
+export interface LikesByDayStat {
+  date: string;
+  totalMeGusta: number;
+}
+
 export interface StatisticsDateRange {
   from: string;
   to: string;
@@ -62,6 +93,35 @@ export class StatisticsService {
           withCredentials: true,
         },
       )
+      .pipe(catchError((error) => this.handleError(error)));
+  }
+
+  getLoginsByUser(range: StatisticsDateRange): Observable<LoginsByUserStat[]> {
+    return this.http
+      .get<LoginsByUserStat[]>(`${this.apiUrl}/statistics/logins-by-user`, {
+        params: this.buildDateParams(range),
+        withCredentials: true,
+      })
+      .pipe(catchError((error) => this.handleError(error)));
+  }
+
+  getProfileVisits(
+    range: StatisticsDateRange,
+  ): Observable<ProfileVisitsStat[]> {
+    return this.http
+      .get<ProfileVisitsStat[]>(`${this.apiUrl}/statistics/profile-visits`, {
+        params: this.buildDateParams(range),
+        withCredentials: true,
+      })
+      .pipe(catchError((error) => this.handleError(error)));
+  }
+
+  getLikesByDay(range: StatisticsDateRange): Observable<LikesByDayStat[]> {
+    return this.http
+      .get<LikesByDayStat[]>(`${this.apiUrl}/statistics/likes-by-day`, {
+        params: this.buildDateParams(range),
+        withCredentials: true,
+      })
       .pipe(catchError((error) => this.handleError(error)));
   }
 

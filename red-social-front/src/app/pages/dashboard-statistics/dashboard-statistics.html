@@ -5,13 +5,13 @@
         <span class="section-eyebrow">Dashboard administrador</span>
         <h1>Estadísticas</h1>
         <p>
-          Visualización de publicaciones y comentarios dentro de un lapso de
-          tiempo elegido por el administrador.
+          Visualización de publicaciones, comentarios, ingresos, visitas a perfiles
+          y me gusta dentro de un lapso elegido por el administrador.
         </p>
       </div>
 
       <div class="hero-badge">
-        Sprint 4
+        Sprint 4 + 5
       </div>
     </header>
 
@@ -75,6 +75,24 @@
         <span>Comentarios por publicación</span>
         <strong>{{ totalComentariosPorPost }}</strong>
         <small>comentarios analizados</small>
+      </article>
+
+            <article class="summary-card glass-card">
+        <span>Ingresos</span>
+        <strong>{{ totalIngresos }}</strong>
+        <small>logins registrados</small>
+      </article>
+
+      <article class="summary-card glass-card">
+        <span>Visitas a perfiles</span>
+        <strong>{{ totalVisitas }}</strong>
+        <small>visitas de otros usuarios</small>
+      </article>
+
+      <article class="summary-card glass-card">
+        <span>Me gusta</span>
+        <strong>{{ totalMeGusta }}</strong>
+        <small>likes otorgados</small>
       </article>
     </section>
 
@@ -221,6 +239,139 @@
                       </small>
                     </div>
                   </div>
+                }
+              </div>
+            </div>
+          }
+        </article>
+
+                <article class="chart-card glass-card">
+          <div class="chart-header">
+            <div>
+              <span class="section-eyebrow">Ranking horizontal</span>
+              <h2>Ingresos por usuario</h2>
+            </div>
+
+            <strong>{{ totalIngresos }} total</strong>
+          </div>
+
+          @if (loginsByUser.length === 0) {
+            <div class="empty-chart">
+              No hay ingresos registrados en el lapso seleccionado.
+            </div>
+          } @else {
+            <div class="ranking-chart">
+              @for (item of loginsByUser; track item.userId; let index = $index) {
+                <div class="ranking-row">
+                  <div class="ranking-user">
+                    <span class="ranking-position">#{{ index + 1 }}</span>
+
+                    <div>
+                      <strong>@{{ item.nombreUsuario }}</strong>
+                      <small>{{ item.nombreCompleto }}</small>
+                    </div>
+                  </div>
+
+                  <div class="ranking-bar-track">
+                    <div
+                      class="ranking-bar login-bar"
+                      [style.width.%]="getLoginBarWidth(item.totalIngresos)"
+                    ></div>
+                  </div>
+
+                  <strong class="ranking-value">
+                    {{ item.totalIngresos }}
+                  </strong>
+                </div>
+              }
+            </div>
+          }
+        </article>
+
+        <article class="chart-card glass-card">
+          <div class="chart-header">
+            <div>
+              <span class="section-eyebrow">Gráfico de burbujas</span>
+              <h2>Visitas a perfiles</h2>
+            </div>
+
+            <strong>{{ totalVisitas }} total</strong>
+          </div>
+
+          @if (profileVisits.length === 0) {
+            <div class="empty-chart">
+              No hay visitas a perfiles en el lapso seleccionado.
+            </div>
+          } @else {
+            <div class="bubble-chart">
+              @for (item of profileVisits; track item.userId) {
+                <div
+                  class="visit-bubble"
+                  [style.width.px]="getVisitBubbleSize(item.totalVisitas)"
+                  [style.height.px]="getVisitBubbleSize(item.totalVisitas)"
+                >
+                  <strong>{{ item.totalVisitas }}</strong>
+                  <span>@{{ item.nombreUsuario }}</span>
+                </div>
+              }
+            </div>
+          }
+        </article>
+
+        <article class="chart-card glass-card">
+          <div class="chart-header">
+            <div>
+              <span class="section-eyebrow">Gráfico de líneas</span>
+              <h2>Me gusta otorgados por día</h2>
+            </div>
+
+            <strong>{{ totalMeGusta }} total</strong>
+          </div>
+
+          @if (likesByDay.length === 0) {
+            <div class="empty-chart">
+              No hay me gusta otorgados en el lapso seleccionado.
+            </div>
+          } @else {
+            <div class="line-chart-wrapper">
+              <svg
+                class="line-chart likes-line-chart"
+                [attr.viewBox]="'0 0 ' + chartWidth + ' ' + chartHeight"
+                preserveAspectRatio="none"
+              >
+                <line
+                  [attr.x1]="chartPadding"
+                  [attr.y1]="chartHeight - chartPadding"
+                  [attr.x2]="chartWidth - chartPadding"
+                  [attr.y2]="chartHeight - chartPadding"
+                ></line>
+
+                <line
+                  [attr.x1]="chartPadding"
+                  [attr.y1]="chartPadding"
+                  [attr.x2]="chartPadding"
+                  [attr.y2]="chartHeight - chartPadding"
+                ></line>
+
+                <polyline
+                  [attr.points]="likesLinePoints"
+                ></polyline>
+
+                @for (item of likesByDay; track item.date; let index = $index) {
+                  <circle
+                    [attr.cx]="getLikesLineX(index)"
+                    [attr.cy]="getLikesLineY(item.totalMeGusta)"
+                    r="6"
+                  ></circle>
+                }
+              </svg>
+
+              <div class="line-labels">
+                @for (item of likesByDay; track item.date) {
+                  <span>
+                    {{ formatShortDate(item.date) }}
+                    <b>{{ item.totalMeGusta }}</b>
+                  </span>
                 }
               </div>
             </div>

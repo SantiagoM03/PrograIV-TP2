@@ -10,10 +10,10 @@ export class LoginDto
   usuarioOCorreo!: string;
 
   /*
-    Contraseña plana enviada desde el frontend.
+    Acá recibo la contraseña plana enviada desde el frontend.
 
-    No se encripta en el DTO.
-    Se compara en el service contra el hash guardado en MongoDB.
+    No la encripto en el DTO.
+    La comparo en el service contra el hash guardado en MongoDB.
   */
   @IsString({ message: 'La contraseña debe ser un texto.' })
   @IsNotEmpty({ message: 'La contraseña es obligatoria.' })

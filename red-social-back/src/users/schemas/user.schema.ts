@@ -2,19 +2,19 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
-export type UserDocument = HydratedDocument<User>; //Esto permite usar metodos/propiedades propios de Mongoose, como _id, save(), createdAt, updatedAt, etc.
+export type UserDocument = HydratedDocument<User>; // Con esto puedo usar métodos/propiedades de Mongoose, como _id, save(), createdAt y updatedAt.
 
-//Enum para setear los perfiles permitidos en la aplicacipon.
+// Acá defino los perfiles que permito en la aplicación.
 export enum UserProfile
 {
   Usuario = 'usuario',
   Administrador = 'administrador',
 }
 
-//Se indica que esta clase se va a transformar en una coleccion de Mongoose.
+// Acá marco que esta clase se transforma en una colección de Mongoose.
 @Schema({
   collection: 'users',
-  timestamps: true, //para agregar automáticamente createdAt y updatedAt
+  timestamps: true, // Acá hago que Mongoose agregue createdAt y updatedAt automáticamente.
 })
 export class User
 {
@@ -33,13 +33,12 @@ export class User
 
   @Prop({
     required: true,
-    select: false, // Hace que, por defecto, Mongoose NO devuelva este campo cuando buscamos usuarios.
+    select: false, // Acá evito que Mongoose devuelva este campo por defecto cuando busco usuarios.
   })
-  passwordHash!: string; //No se guarda la contraseña original, solo el hash generado con bcrypt.
+  passwordHash!: string; // Acá no guardo la contraseña original, solo el hash generado con bcrypt.
 
   @Prop({required: true})
   fechaNacimiento!: Date;
-
 
   @Prop({required: true, trim: true, maxlength: 180})
   descripcionBreve!: string;
@@ -54,5 +53,5 @@ export class User
   habilitado!: boolean;
 }
 
-//Se crea el esquema de Mongoose a partir de la clase User.
+// Acá creo el esquema de Mongoose a partir de la clase User.
 export const UserSchema = SchemaFactory.createForClass(User);

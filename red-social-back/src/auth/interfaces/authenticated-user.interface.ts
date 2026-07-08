@@ -2,9 +2,9 @@
 import { UserProfile } from '../../users/schemas/user.schema';
 
 /*
-  Usuario autenticado obtenido desde el JWT.
+  Acá tipé el usuario autenticado que obtengo desde el JWT.
 
-  Este objeto se guarda en request.user
+  Este objeto lo guardo en request.user
   después de pasar por JwtCookieGuard.
 */
 export interface AuthenticatedUser 

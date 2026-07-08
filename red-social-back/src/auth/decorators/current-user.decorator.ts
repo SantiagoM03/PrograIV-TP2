@@ -5,12 +5,12 @@ import { AuthenticatedUser } from '../interfaces/authenticated-user.interface';
 import { RequestWithAuthUser } from '../interfaces/request-with-auth-user.interface';
 
 /*
-  Decorador para obtener el usuario autenticado dentro de un controller.
+  Acá creo un decorador para obtener el usuario autenticado en un controller.
 
   Ejemplo:
   @CurrentUser() user: AuthenticatedUser
 
-  También permite obtener una propiedad puntual:
+  También me permite obtener una propiedad puntual:
   @CurrentUser('id') userId: string
 */
 export const CurrentUser = createParamDecorator(

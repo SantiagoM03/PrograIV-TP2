@@ -7,9 +7,10 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { AdminGuard } from '../auth/guards/admin.guard';
+import { AnalyticsModule } from '../analytics/analytics.module';
 
 /*
-  Tipo que representa el valor permitido por JWT para expiresIn.
+  Acá tipé el valor permitido por JWT para expiresIn.
 
   Ejemplos válidos:
   - '15m'
@@ -17,18 +18,19 @@ import { AdminGuard } from '../auth/guards/admin.guard';
   - '7d'
   - 900
 
-  Lo usamos porque TypeScript necesita saber que el string del .env
+  Lo uso para que TypeScript sepa que el string del .env
   representa un valor válido para la configuración del JWT.
 */
 type JwtExpiresIn = NonNullable<JwtModuleOptions['signOptions']>['expiresIn'];
 
 @Module({
   imports: [
+    AnalyticsModule,
     /*
-      AuthModule necesita UsersModule porque la autenticación
+      Acá importo UsersModule porque la autenticación
       depende de usuarios.
 
-      AuthService va a usar UsersService para:
+      En AuthService uso UsersService para:
       - registrar usuarios;
       - buscar usuario por correo o nombre de usuario;
       - validar duplicados;
@@ -37,30 +39,30 @@ type JwtExpiresIn = NonNullable<JwtModuleOptions['signOptions']>['expiresIn'];
     forwardRef(() => UsersModule),
 
     /*
-      JwtModule permite generar y validar tokens JWT.
+      JwtModule me permite generar y validar tokens JWT.
 
-      Lo configuramos con registerAsync porque los valores vienen del .env:
+      Lo configuro con registerAsync porque los valores vienen del .env:
       - JWT_SECRET
       - JWT_EXPIRES_IN
 
-      Esto evita dejar claves secretas escritas directamente en el código.
+      Así evito dejar claves secretas escritas directamente en el código.
     */
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
 
       /*
-        Indicamos explícitamente que esta función devuelve JwtModuleOptions.
+        Acá indico explícitamente que esta función devuelve JwtModuleOptions.
 
-        Eso ayuda a TypeScript a validar correctamente la configuración
-        que estamos retornando.
+        Eso me ayuda a validar correctamente la configuración
+        que estoy retornando.
       */
       useFactory: (configService: ConfigService): JwtModuleOptions => {
         /*
-          JWT_SECRET es la clave privada con la que firmamos los tokens.
+          JWT_SECRET es la clave privada con la que firmo los tokens.
 
           Si no existe en .env, getOrThrow corta la ejecución del backend.
-          Esto es bueno porque no queremos que la app funcione sin secreto JWT.
+          Eso me evita que la app funcione sin secreto JWT.
         */
         const secret = configService.getOrThrow<string>('JWT_SECRET');
 
@@ -68,9 +70,9 @@ type JwtExpiresIn = NonNullable<JwtModuleOptions['signOptions']>['expiresIn'];
           JWT_EXPIRES_IN define cuánto dura el token.
 
           El PDF pide que el token venza a los 15 minutos.
-          Por eso, si no encuentra la variable en .env, usamos '15m'.
+          Por eso, si no encuentro la variable en .env, uso '15m'.
 
-          Hacemos el casteo a JwtExpiresIn porque @nestjs/jwt espera
+          Hago el casteo a JwtExpiresIn porque @nestjs/jwt espera
           un tipo más específico que un string común.
         */
         const expiresIn = (
@@ -88,7 +90,7 @@ type JwtExpiresIn = NonNullable<JwtModuleOptions['signOptions']>['expiresIn'];
   ],
 
   /*
-    AuthController va a exponer rutas como:
+    Acá expongo rutas como:
     - POST /api/auth/register
     - POST /api/auth/login
     - POST /api/auth/logout
@@ -98,7 +100,7 @@ type JwtExpiresIn = NonNullable<JwtModuleOptions['signOptions']>['expiresIn'];
   controllers: [AuthController],
 
   /*
-    AuthService va a contener la lógica de autenticación:
+    En AuthService concentro la lógica de autenticación:
     - validar datos;
     - hashear contraseña;
     - comparar contraseña con bcrypt;

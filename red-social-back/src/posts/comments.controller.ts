@@ -22,9 +22,9 @@ import { UpdateCommentDto } from '../auth/dto/update-comment.dto';
 import { PostsService } from './posts.service';
 
 /*
-  Controller de comentarios.
+  Acá manejo el controller de comentarios.
 
-  Pertenece al módulo publicaciones, porque los comentarios
+  Lo dejo dentro del módulo de publicaciones, porque los comentarios
   están asociados a una publicación concreta.
 */
 @Controller('posts/:postId/comments')
@@ -34,8 +34,8 @@ export class CommentsController {
   /*
     GET /api/posts/:postId/comments
 
-    Trae comentarios de una publicación específica.
-    Permite:
+    Acá traigo comentarios de una publicación específica.
+    Permito:
     - offset
     - limit
 
@@ -54,7 +54,7 @@ export class CommentsController {
   /*
     POST /api/posts/:postId/comments
 
-    Agrega un comentario con el usuario autenticado.
+    Acá agrego un comentario con el usuario autenticado.
   */
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -79,8 +79,8 @@ export class CommentsController {
   /*
     PUT /api/posts/:postId/comments/:commentId
 
-    Modifica un comentario propio.
-    Marca edited/modificado en true.
+    Acá modifico un comentario propio.
+    Marco edited/modificado en true.
   */
   @Put(':commentId')
   @HttpCode(HttpStatus.OK)

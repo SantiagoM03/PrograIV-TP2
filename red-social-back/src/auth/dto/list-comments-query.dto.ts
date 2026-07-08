@@ -2,6 +2,7 @@
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Min } from 'class-validator';
 
+// Acá valido los parámetros de paginación para listar comentarios.
 export class ListCommentsQueryDto 
 {
   @IsOptional()

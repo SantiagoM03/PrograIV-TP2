@@ -33,7 +33,7 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   /*
-    Alta de publicación.
+    Acá doy de alta una publicación.
 
     Recibe multipart/form-data:
     - title
@@ -88,7 +88,7 @@ export class PostsController {
   }
 
   /*
-    Listado de publicaciones.
+    Acá devuelvo el listado de publicaciones.
 
     Ejemplos:
     GET /api/posts
@@ -103,7 +103,7 @@ export class PostsController {
   }
 
   /*
-  Obtiene una publicación específica.
+  Acá obtengo una publicación específica.
 
     GET /api/posts/:id
   */
@@ -118,7 +118,7 @@ export class PostsController {
   }
 
   /*
-    Baja lógica.
+    Acá hago baja lógica.
 
     Solo puede eliminar:
     - el dueño de la publicación;
@@ -140,7 +140,7 @@ export class PostsController {
   }
 
   /*
-    Dar me gusta.
+    Acá agrego un me gusta.
   */
   @Post(':id/likes')
   @HttpCode(HttpStatus.OK)
@@ -158,7 +158,7 @@ export class PostsController {
   }
 
   /*
-    Quitar me gusta.
+    Acá quito un me gusta.
   */
   @Delete(':id/likes')
   @HttpCode(HttpStatus.OK)

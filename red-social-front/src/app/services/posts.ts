@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, catchError, map, throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 import {
   CreateCommentRequest,
@@ -37,7 +38,7 @@ export interface ListPostsParams
 })
 export class PostsService 
 {
-  private readonly apiUrl = 'http://localhost:3000/api/posts';
+  private readonly apiUrl = `${environment.apiUrl}/posts`;
 
   constructor(private readonly http: HttpClient) {}
 

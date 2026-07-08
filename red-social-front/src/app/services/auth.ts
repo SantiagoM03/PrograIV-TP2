@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, signal } from '@angular/core';
 import { Observable, catchError, map, tap, throwError } from 'rxjs';
-
+import { environment } from '../../environments/environment';
 import { User } from '../models/user';
 
 export interface LoginRequest {
@@ -36,7 +36,7 @@ export class AuthService {
     Como en Nest tengo app.setGlobalPrefix('api'),
     todas las rutas empiezan con /api.
   */
-  private readonly apiUrl = 'http://localhost:3000/api';
+  private readonly apiUrl = environment.apiUrl;
 
   /*
     Acá guardo el usuario actual en memoria y también en localStorage.

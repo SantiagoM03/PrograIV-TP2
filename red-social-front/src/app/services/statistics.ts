@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface PostsByUserStat {
   userId: string;
@@ -60,9 +61,10 @@ export interface StatisticsDateRange {
 @Injectable({
   providedIn: 'root',
 })
-export class StatisticsService {
+export class StatisticsService 
+{
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/api';
+  private readonly apiUrl = environment.apiUrl;
 
   getPostsByUser(range: StatisticsDateRange): Observable<PostsByUserStat[]> {
     return this.http

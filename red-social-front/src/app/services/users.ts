@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError } from 'rxjs';
-
+import { environment } from '../../environments/environment';
 import { User } from '../models/user';
 
 interface ListUsersBackendResponse {
@@ -29,9 +29,10 @@ export interface CreateUserByAdminRequest {
 @Injectable({
   providedIn: 'root',
 })
-export class UsersService {
+export class UsersService 
+{
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/api';
+  private readonly apiUrl = environment.apiUrl;
 
   listUsers(): Observable<User[]> {
     return this.http

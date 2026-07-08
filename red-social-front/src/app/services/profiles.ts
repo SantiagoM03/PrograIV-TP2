@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, throwError } from 'rxjs';
-
+import { environment } from '../../environments/environment';
 import { Post } from '../models/post';
 import { User } from '../models/user';
 
@@ -13,9 +13,10 @@ export interface PublicProfileResponse {
 @Injectable({
   providedIn: 'root',
 })
-export class ProfilesService {
+export class ProfilesService 
+{
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/api';
+  private readonly apiUrl = environment.apiUrl;
 
   getProfile(userId: string): Observable<PublicProfileResponse> {
     return this.http
